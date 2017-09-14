@@ -1,0 +1,196 @@
+\documentclass{article}
+\usepackage{graphicx,color,setspace,hyperref}
+\usepackage{mathtools}
+\usepackage{hyperref}
+\usepackage{listings}
+\lstset{language=C}
+\usepackage{pifont}% http://ctan.org/pkg/pifont
+\newcommand{\cmark}{\(\checkmark\)}%
+\newcommand{\xmark}{\ding{55}}%
+
+\begin{document}
+
+\title{Scale-up Bibliography}
+
+\maketitle
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Supercomputers
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Super Computers}
+
+\noindent\cite{schroeder:2006icdsn-HPC-failures} LANLs failures - looks at failure rates of a 9 year trace of LANL SMP/NUMA clusters. Determines that failures can be modeled with the Weibull curve.\\
+
+\noindent\cite{bryant:2000lsc-linux-smp} Linux SMP - shows that Linux SMP support greatly improves between 2.2 and 2.4.\\
+
+\noindent\cite{gara:bim2005-blue-gene} IBM BlueGene/Q - attempts to address the gap between supercomputers and dedicated systems with special links/networks, core/floating point enhancements, distributed memory, and fault tolerance techniques. \\
+
+\noindent\cite{feldman:website2011-cray} CrayXK6 - using GPUs in supercomputers. \\
+
+\noindent\cite{van-essen:DISCS2012-DI-MMAP} DI-MMAP - LKM for memory management \& page policies.  Provides out-of-core performance for data-intensive applications. Provides: 
+\begin{itemize}
+	\item fixed size page buffer
+	\item minimal dynamic memory allocator
+	\item FIFO buffer replacement
+	\item preferential page caching 
+\end{itemize}
+
+\noindent Common themes at SC '13:
+\begin{itemize}
+	\item scaling: computation scales, I/O does not
+	\item checkpointing: needs to be re-thought
+	\item in-situ/workflows: we can't store our data
+		\begin{itemize}
+			\item streaming ({\it e.g.,  FastBit\footnote{process chunks; determine when/where to index; threshold for diminishing returns over network}}): code injection is encouraging
+			\item rewrite code focused on data movement instead of arithmetic
+			\item move from file data to stream data
+		\end{itemize}
+	\item metadata ({\it e.g., ADIOS}\footnote{abstract data at rest/in motion}): elastic, statistical
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Experimental OSs
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Parallel Programming
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Parallel Programming}
+
+\noindent\cite{ranger:2007hpca-phoenix} Phoenix - converts MapReduce programs to multi-core/processor systems (including shared memory systems) by spawning parallel threads for each core.\\
+
+\noindent\cite{yoo:2009iiswc-phoenix2} Phoenix 2 - optimized for \{large-scale NUMA, Linux x86\_64\}\\
+
+\noindent\cite{talbot:2011mapreduce-phoenix++} Phoenix++ - optimized for \{modularity, extensibility, workloads\}\\
+
+\noindent\cite{manferdelli:ieee2008-parallelism} many core parallelism - enumerates the challenges/solutions to many-core computing: (1) brick wall for serial performance = power wall + memory wall + ILP wall, (2) software must accommodate parallelism, and (3) OSs are limited by their isolation of programs, services, and devices; hypervisors must assign resources and manage environments.\\
+
+\noindent\cite{gordon:osdi2012-comet} COMET - a runtime that lets parts of an unmodified parallel programs, spawned by a mobile device, run on a powerful server using DSM techniques and virtual machine synchronization. \\
+
+\noindent\cite{liu:sosp2011-dthreads} DTHREADS - a library that ensures determinism between threads by adding a new API.\\
+
+\noindent\cite{czechowski:ipdps2013-codesign} Co-design - a model for designing/reasoning about high level; where they try to relate parallelism with cores, structure of memory hierarchy, and network topology.\\
+
+\noindent\cite{david:sosp2013-synch} Synchronization - to scale, synchronization should be limited to a single core; crossing sockets is a killer, message passing shines when contention is high, there is no dominant locking scheme. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Experimental OSs
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Experimental Operating Systems}
+
+\noindent\cite{scheupback:manycore2008-barrelfish} Barrelfish - proposes a new OS architecture which facilitates heterogenous hardware and application demands by maintaing a system knowledge base and making execution decisions at runtime.\\
+
+\noindent\cite{wentzlaff:acm2009-fos} FOS - proposes a new OS architecture which distributes kernel system services spatially instead of time-sharing resources.\\
+
+\noindent\cite{boyd-wickizer:osdi2008-corey} Corey - address multiprocessor scalability by giving applications control of shared kernel data structures. Introduces address ranges, kernel cores, and shares to facilitate user-space control via system calls (corey).\\
+
+\noindent\cite{appavoo:acm2007-k42} To be read - K42 (prevent applications from contending for resources).\\
+
+\noindent\cite{gamsa:osdi1999-tornado} To be read - Tornado (prevent applications from contending for resources).\\
+
+\noindent\cite{bugnion:acm1997-disco} To be read - DISCO (aims to avoid kernel bottlenecks with a small kernel that minimizes shared data).\\
+
+\noindent\cite{saha:eurosys2007-cmp}  To be read - McRT (Intel's manycore runtime; addresses the scalability of an application runtime, including some notion of inter- and intra- machine heterogeneity at the application level).\\
+
+\noindent\cite{agarwal:dac2007-killmulticore} Cores per Chip - is an interesting article about the tradeoffs of scaling up (adding more resources to a core) and scaling out (adding more cores to a chip). Probably more useful because it predicts the size and scope of cores.\\
+
+\noindent\cite{mao:eurosys2012-masstree} Masstree - is a key-value database store that fits into memory and is persistent. This may be a useful benchmark to run on the SAP machines to see if performance increases or to see what latencies are actually present.\\
+
+\noindent\cite{song:eurosys2011-cerberus} Cerberus - based on the observation that commodity operating systems can't scale for a large number of CPU cores, this system introduces OS-clustering to provide a single OS image (via a SuperProcess) to the user while virtualizing resources with Xen (share address space, file system, file contents, NICs) via shared memory and a static resource allocation (i.e. 8 cores per OS).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Big Data Case Studies
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Big Data Case Studies}
+
+\noindent\cite{jacobs:acm2009-big-data-article} Big Data - explains the big data problem and the limitations of hardware, database architectures (relational), and distributed computing when processing big data. \\
+
+\noindent\cite{oreilly:2012-big-data-now} Big Data Now - describes the volume, variety, velocity, and veracity of big data. Also has a useful Apache distributed systems table. \\
+
+\noindent\cite{zong:DISCS2012-satellite} EROS - processing and distribution of satellite images; discusses workload effects, challenges for the system (caching, memory, threads), and optimizations (prefetching, state tracking, migration). \\
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Performance, Benchmarking, Tracing
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Performance, Benchmarking, Tracing}
+
+\noindent\cite{boyd:osdi2010-scalability} OProfile - iteratively adds cores, identifies Linux bottlenecks @48 core threshold, fixes problems (macro/system)\\
+
+\noindent\cite{sharma:lasci2005-ltt} LTT - looks at an individual system call; presents functions they call, how often they are called, how long they take (micro/system call)\\
+
+\noindent\cite{abeni:rtas2002-linuxperf} Latencies - talks about latencies but does not say where they came from; measures given sleep time vs. observed sleep time; eliminates jitters and pre-emption.\\
+
+\noindent\cite{pesterev:acm2010-cacheperf} Cache Tracing - looks at L1/L2 cache hits using OProfile + memecached.\\
+
+\noindent\cite{shende:elw1999-profiling} Tracing vs. Profiling - explains the difference between profiling (summary statistics of performance metrics) and tracing (when and where an event occurred).\\
+
+\noindent\cite{desnoyers:linuxsymp2008-hypervisor} Hypervisor Tracing - discusses hypervisor tracing (not that I need it). \\
+
+\noindent\cite{desnoyers:LWNnet2012-lttng1} LTTng-2.0 1 - LTTng-2.0 features, advantages, and tradeoffs; kernel activity overview with tracepoints; dynamic probes\\
+
+\noindent\cite{desnoyers:LWNnet2012-lttng2} LTTng-2.0 2 - LTTng-2.0 examples; user space and kernel tracing; performance counters and kreteprobes; LTTngTop.\\
+
+\noindent\cite{kuz:usenix2011-benchmarks} Mixed workloads - why single applications (like MOSBENCH) are not accurate benchmarks for multi-core OSs.\\
+
+\noindent\cite{attariyan:osdi2012-xray} X-ray - a runtime that identifies the root cause of slow performance (usually configuration or input). It has an online phase, which tracks performance data/system calls, and an offline phase, which replays code with binary instrumentation (using \textcolor{magenta}{\href{http://download-software.intel.com/sites/default/files/article/256675/cgo2013.pdf}{Pin}}) to determine which inputs/configurations caused slowdowns.\\
+
+\noindent\cite{tan:na-gdbstub} gdbstub - explains the requirements, necessities, and internal workings (mainly the CPU responses) of gdbstub and a remote GDServer.  This should allow us to debug on GRUB by stepping through instructions as we look for an access violation.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Memory Usage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Memory Usage}
+
+\noindent\cite{wulf:sigarch1995-memory-wall} memory wall - memory transfer rate (speed) and onboard connections (physical space) limit the performance of the system as a whole; result is that system speeds were not doubling according to Moore's law anymore.\\
+
+\noindent\cite{olschanowsky:ICPPW2010-PIR} PIR - tool for HPC application source code which finds/outputs memory references so a programmer can optimize. We can use this tool to find excessive memory references and figure out how the OS reacts to it. \\
+
+\noindent\cite{luk:PLDI2005-pin} Pin - tool for adding \emph{instrumentation} (or extra code) into an application at run-time for optimization and transparency; allows us to see contents of registers, memory, and control flow.\\
+
+\noindent\cite{movall:atec2005-physical} Physical Memory Visualization - tool suite for analyzing what the physical memory looks like (ex: allocations to processes, free space, cpu, page allocations, mapping to virtual memory, etc.).\\
+
+\noindent\cite{corbet:LWNnet2012-NUMA} Sched/numa vs. AutoNUMA - compares Zijlstra and Arcangeli's approach to NUMA optimization (process migration, page migration, process decay, etc.)\\
+
+\noindent\cite{novakovic:asplos2014-soNUMA} Scale-out NUMA - circumvents layers (OS, Network, I/O Bus) to provide fast RDMA. Uses (1) stateless request/reply protocol over NUMA interconnects and (2) adds RMC controller in node's local coherency hierarchy to bypass PCIe. \\
+
+\noindent\cite{} Positional Effects of RAM - fault rate declines over time, vendor matters, SRAM faults are dominated by transient faults
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Fault Tolerance
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Fault Tolerance}
+\noindent\cite{swift:sosp2003-nook, swift:osdi2004-shadow-drivers} memory management hardware - encapsulate DD in protected domain (a.k.a ``hard-wall"). When faults occur, enable address-space isolation around the driver~\cite{swift:sosp2003-nook} and microreboot the DD~\cite{swift:osdi2004-shadow-drivers} to stop errant code from writing to the kernel. \\
+
+\noindent\cite{zhou:osdi2006-safedrive} SafeDrive - compile assertion code into DD that checks segfaults and restarts driver\\
+
+\noindent\cite{david:osdi2008-curios} microkernel techniques - create a new protection domain to house session state.\\
+
+\noindent\cite{shye:DSN2007-plr} redundant processes - per application process, compare output to ensure correct execution. 16.9\% overhead for single threaded applications.\\
+
+\noindent\cite{ansel:ipdps2009-dmtcp} DMTCP - program that checkpoints/restarts an application execution context to/from disk. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 2/4/2014
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lampsons paper: goals for system design and how
+	- many STEADY (simplicity, concepts are against each other
+	- how: approximate, divide and conquer, paralleliize
+	(1) simple, (2) abstract with interface, (3) write a specification
+A scalable conflict free replicated data set (distributed eventually consistent set)
+	- operations are commutative
+	- change from a state operation propagation to a delta propagating operation
+
+\bibliographystyle{abbrv}
+\bibliography{references}
+
+\addcontentsline{toc}{section}{References} 
+
+\newpage
+\onecolumn
+\appendix
+%Appendix A
+%\section{1}
+
+
+\end{document}

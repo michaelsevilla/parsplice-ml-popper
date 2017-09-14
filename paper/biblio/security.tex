@@ -1,0 +1,73 @@
+\documentclass{article}
+\usepackage{graphicx,color,setspace,hyperref}
+\usepackage{mathtools}
+\usepackage{hyperref}
+\usepackage{listings}
+\lstset{language=C}
+
+
+\begin{document}
+
+\title{Security}
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Motivation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Motivation}
+
+\noindent\cite{garfinkel:NDSSS2003-VM-introspection} VM IDSs - the paper provides good motivation for the use of virtual machine IDSs and their abilities contribute to security. They prove that deviations from the model and reality can allow evasion.\\
+
+\noindent\cite{laureano:euromicro2004-idsInVMs} is the pioneering work and motivation for virtual machine IDSs. Discusses VMs, hypervisors, \& introspection (monitor \& respond).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Introspection
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introspection}
+
+\noindent\cite{dolan-gavitt:ieeesp2011-virtuoso} Virtuoso - a system that edits QEMU assembly translations, outputs trace logs, analyzes/consolidates the trace logs, \& creates a host python simulation (including IO).\\
+
+\noindent\cite{bahram:IEEErds2012-DKSM} DKSM - a LKM that changes in-kernel data structures (using QEMU + IL) to thwart introspection. \\
+
+\noindent\cite{payne:acsac2007-secure-flexible-vm-monitoring} XenAccess -  provides the foundation introspection tools viw virtual {memory introspection, virtual disk monitoring}.\\
+
+\noindent\cite{fu:sp2012-space-traveling} VMST - extension to Virtuoso the *automatically* bridges the semantic gap to generate VMI tools - (user doesn't specify tools); system wide instruction monitoring to redirect important kernel data. \\
+
+\noindent\cite{dolan-gavitt:techreport2011-leveraging-forensic-introspection} FMA tools can be applied to live VMI-introspection. \\
+
+\noindent\cite{toldinas:kaunas2009-VM-rootkits} memory snapshots - viability and drawbacks. They varied VM memory size, and, in addition to other affects, concluded that VM memory size is correlated to the root kit detection time.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Alternatives to Introspection
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Alternate to introspection}
+
+\noindent\cite{vasisht:micro2008-SHARK} SHARK - proposes micro architectural support for a synergistic hardware/software system to detect root kits - it completely distrusts the OS.\\
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Alternatives to Introspection
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Class Readings}
+
+\noindent\cite{gentry:acm2010-homomorphic} talks about homomorphic encryption schemes which may be helpful for interactions with the cloud.\\
+
+\noindent\cite{rivers:acm1978-onewayf} the fundamental basis for encryption - a function that is easy to compute but difficult to reverse.\\
+
+\noindent\cite{chen:sp2010-side-channels} side channels - how user clicks or keystrokes can reveal information.\\
+
+\noindent\cite{dingledine:ssym2004-tor} Tor - system that pads data and encrypts messages with relays.\\
+
+
+\bibliographystyle{abbrv}
+\bibliography{references}
+
+\addcontentsline{toc}{section}{References} 
+
+\newpage
+\onecolumn
+\appendix
+%Appendix A
+%\section{1}
+
+
+\end{document}

@@ -1,0 +1,105 @@
+/****************************************************************************************************/
+/* Embracing Diversity in the Barrelfish Manycore Operating System				    */
+/* Adrian Schüpbach, Simon Peter, Andrew Baumann, Timothy Roscoe				    */
+/* ETH Zürich											    */
+/****************************************************************************************************/
+Problem: The increasing number of cores and hardware diversity prevents scalability. This trend prevents us from continuing our current progress - namely (1) manually tuning an application when deploying hardware, (2) sharing hardware between applications, and (3) supporting a new, wide range of execution environments. There are different types of diversity - non-uniformity, core diversity, and system diversity which range from between systems and within systems. We can no longer abstract away resources in many core systems.
+Solution: (1) benchmark low level latencies and (2) design new OS to embrace the benefits of these resources to accommodate heterogenous systems. 
+Testing: non-NUMA, NUMA
+
+Findings (1) - latencies on the same die are lower than on different dies, latencies with more network interconnects are longer. Linux already abstracts and handles non-uniformity to handle minor differences
+Findings (2) - derive policies from hardware specifications and polling. Create a system knowledge base (SKB) that is dynamically and statically filled as a result of resource discovery, online measurement and profiling, and up-front assertions. This should receive input from both the hardware and from the applications (either as resource demands or a subset of defined resources). This should allows us to maximize the management of core diversity, the interconnect device accesses, and improved caching share.
+
+Similarities: Addresses scalability by changing OS structure to accommodate many cores; Needs to build from the ground up; Needs to build a Knowledge Base (determine when we need to update)
+Differences: Account for HW diversities rather than resource scheduling; Measured on board/interconnect/latencies; We aren't exposing HW or changing the execution path - we are trying to give more resources to execution units that need it. 
+
+/****************************************************************************************************/
+/* The Case for a Factored Operating System (fos)						    */
+/* David Wentzlaff and Anant Agarwal								    */
+/* MIT												    */
+/****************************************************************************************************/
+Problem: modern OSs are not suited for many core computation (+1000 cores) and we are at an inflection point for multicore computation. There is an inability in current single stream performance of microprocessors to deal with and exploit parallelism in sequential codes, further pipeline, and raise clock frequencies. Current OSs rely on fine grain data structure locks, efficient cache coherence, and the structure of time multiplex computation resources (OS + app on same core).
+
+Sol'n: space sharing replaces traditional time sharing to increase scalability - this is accomplished by composing multiple server processes in a spatially distributed fashion across a multicore chip. First they measure the scalability of the physical page allocation routines to see if they scale well to many cores. 
+
+for is split into three parts: (1) microkernel to manage resource protection + messages)
+
+Findings (1) as the number of cores increases, the lock contention dominates execution time. 
+
+Similarities: Addresses scalability by changing the OS structure to accommodate many cores; needs to build from the ground up; break up the different parts of the OS; notion of continuations; trying to delegate work where its needed. 
+Differences: relies on interconnect speed; distributes components instead of scheduling resources; creates layer from many different cores; 1 core per service instead of distributing resources
+
+/****************************************************************************************************/
+/* Corey: An Operating System for Many Cores							    */
+/* Silas Boyd-Wickizer, Frans Kaashoek, Robert Morris						    */
+/* MIT												    */
+/****************************************************************************************************/
+Problem: multiprocesseur application performance limited by the OS when (1) applications use the OS frequently and (2) OS uses shared kernel structures
+Ex: poorly scaling OS data structures modified by multiple cores (contention for shared data, 1 thread an update at a time)
+
+Sol'n: applications should control sharing by arranging each data structure s.t. there is 1 processor updating a kernel structure unless specified otherwise. New abstractions introduced:
+(1) address ranges: applications control which parts of the address space are private per core
+(2) kernel cores: applications dedicate specific cores for specific functions
+(3) shares: lookup tables for kernel objects that allow applications to control which object identifiers are visible to other cores
+Good description of tradeoffs for memory sharing in MapReduce (contention vs. cache misses for shared memory)
+Good examples of slowdowns as the number of cores increases
+
+Findings (1) measurements for {inner, intra} core latencies (i.e. time required to acquer/release a lock)
+Findings (2) performs 25% better
+
+Similarities: resource sharing; exposing kernel to applications; sharing resources in a system with many cores; need to rethink OSs for newer systems 
+Differences: sharing is the scalability bottleneck; not trying move resources around; exposing low level kernel functions instead of abstracting this away; only looking at processor sharing; view from a scale out perspective; makes things more complicated for the user; only looking at the number of courses increasing (resources) instead
+
+/****************************************************************************************************/
+/* An Analysis of Linux Scalability to Many Cores						    */
+/* Silas Boyd-Wickizer, Austin T. Clements,M. Frans Kaashoek, Robert Morris, and Nickolai Zeldovich */
+/* MIT												    */
+/****************************************************************************************************/
+Problem: systems scale poorly, even when performing mush less work per core. If the OS kernel doesn't scale, applications won't and fixing this problem is hard. The goal is to find the scalability limits and bottlenecks. Around 42 cores, kernel time went up and throughput went down… why?
+
+Test setup: x86 48 cores vs. 40 cores
+
+Sol'n: 3002 lines of code changes (16 patches) + sloppy counters (each core holds valu[e). To solve the mount table problem, instantiate per core mount caches and lookups
+
+Findings (1) bottleneck from reading the mount table (spin locks). Turns out that allocating a ticket across 6 cores (120-420 cycles) resulted in pseudo-busy waiting.
+Findings (2) Good use of OProfile to determine what the latencies are. 
+
+/****************************************************************************************************/
+/* The KILL Rule for Multicore									    */
+/* Anant Agarwal, Markus Levy									    */
+/* MIT												    */
+/****************************************************************************************************/
+Problem: 1000-core multicores are coming - we need to figure out how to get the most power out of a given area of silicon. Increasing the size of any resource within a core might not increase the performance by the same amount.
+	- Moore's Gap: increasing # of transistors will not always increase performance
+
+Sol'n: KILL rule - increase resource size only if for every 1% increase in core area there is at least a 1% increase in performance.
+	- Only increase a core's size (resources) if it results in a proportional increase in performance
+	- Simply increasing the number of cores without creating the right balance of resources within the core is wasteful
+
+Findings (1) if we have space for 100 cores, the optimal setup is to have 8KB caches with 87 cores. 
+Findings (2) there is a threshold for core # and core size given a fixed area.
+
+/****************************************************************************************************/
+/* Cache Craftiness for Fast Multicore Key-Value Storage					    */
+/* Yandong Mao, Eddie Kohler†, Robert Morris							    */
+/* MIT												    */
+/****************************************************************************************************/
+Problem: there is a need for a storage system specialized for key-value data in which all data fits in memory + is persistent. The system must be able to support range queries, many keys that share long prefixes, and small valued objects.
+
+Sol'n: Masstree - a fast <k, v> database for SMP machines - this is accomplished by changing the mapping of keys to values on every query.
+- cache craftiness: high performance/scalability + prefetching/collocate
+- uses lock locks, single tree among all cores, wide fanout tree, prefetching nodes form DRAM, cache lines to reduce amount of data per node, and batch processing with checkpointing.
+- structure: layers where keys are stored as close to the root subject to 3 invariants
+- versioning, spin locks, permutation field, splits to ensure consistency
+
+
+Findings (1) executes more than 6 million simple queries per second
+Findings (2) a single tree shared among multiple cores can provide higher performance than partitioned design for some workloads
+	- scales effectively; single shared tree can outperform separate per-core trees (skewed workload)
+Findings (3) performance is dominated by the latency of fetching tree nodes from DRAM, 30% of time is computation
+
+Good efficiency even for challenging workloads
+
+Why do I care: in memory tree with fanout to minimize prefetching; how well will it perform on CSM? how well does it scale for huge machines? What is taking a long time? Is there more of a benefit from running this on SAP machines, that have large memories? Will performance increase if there is more memory? What specific operations are taking a long time?
+
+
