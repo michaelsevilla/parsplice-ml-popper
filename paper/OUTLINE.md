@@ -40,3 +40,16 @@ To detect these access regimes, we are going to try:
 ### Anomaly Detection
 
 ## 4. Implementation
+
+## 5. Similarities to File Systems
+
+- Can we use the same balancers we developed for ParSplice?
+
+- How do we visualize file system traces so they look like the ParSplice key
+  access trace?
+
+
+Resources;
+- Lustre Trace (how do we visualize?)
+- LinkedIn Trace
+- Nathan's Trace
