@@ -1,0 +1,42 @@
+\section{ParSplice Keyspace Analysis}
+
+\subsection{Structured Access Regimes}
+
+Figures~\ref{fig:keyspace-analysis_size},~\ref{fig:keyspace-analysis_locality} and~\ref{fig:keyspace-analysis_throughput}.
+%shows ``access regimes", or groups of accesses
+%to the same subset of keys:
+\begin{itemize}
+  \item change immediately, different sizes
+  \item monotonically increasing
+  \item random access to a single key
+  \item early keys accessed more
+\end{itemize}
+
+\noindent\textbf{Conclusion}: unique patterns of a real HPC application
+
+\subsection{Cache Size Analysis}
+
+Figure~\ref{fig:keyspace-analysis_cachesize}.
+
+\noindent\textbf{Conclusion}: workload phases (high request rate to a small
+number of keys and then low request rate to a large number keys) need a dynamic
+load balancing policy.
+
+\subsection{Overfitting Policies}
+
+Figures~\ref{fig:keyspace-analysis_cachesize-dynamic} and~\ref{fig:keyspace-analysis_cachesize-caveats}.
+
+\noindent\textbf{Side Idea}: we need to figure out what ParSplice memory is
+sensitive to: max usage or usage over time.\\
+
+\noindent\textbf{Conclusion}: dynamic policies absorb the cost of a high read
+request rate for a 2.5 hour run, but it is infeasible to do this for every
+combination of system setup, job lengths, parsplice parameters.
+
+\subsubsection*{Discussion}
+Why don't we just an LRU cache:
+\begin{itemize}
+  \item we can do better (workload is structured and has locality)
+  \item finding the size of the cache is hard
+  \item hotspots dissipate too quickly
+\end{itemize}

@@ -1,0 +1,38 @@
+\section{Mantle Brains: Tools We Plug In}
+
+Requirements: run online, be fast enough to run as often as we want to detect
+regimes
+
+\subsection{Failed, Overcomplicated Brains}
+These techniques proliferated more, less transparent knobs
+\begin{itemize}
+  \item Statistics
+  \item Calculus
+  \item K-Means
+  \item DBScan
+  \item Anomaly Detection
+\end{itemize}
+
+\subsection{System Specific Knowledge}
+
+We tried looking at system-specific metrics to design policies, like request
+rate, unique keys in a sliding window, bandwidth capabilties. For example, we
+know that LevelDB cannot handle high IO request rates.
+
+\subsubsection{when: request rate}
+
+\subsubsection{when: Belady's Min}
+
+\subsection{Domain Specific Knowledge}
+
+We tried looking at domain-specific metrics to design policies, like ParSplice
+key access locality.
+
+\subsubsection{howmuch: regime detection}
+\subsubsection{when: trajectory length goodness}
+\subsubsection{howmuch: cache policy from past}
+
+\subsection{Cloud Techniques: Elastic Search}
+
+What if we re-provision resource in response to events outside the
+application's control, such as a slow Lustre.
