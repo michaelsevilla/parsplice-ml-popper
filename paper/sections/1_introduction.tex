@@ -1,2 +1,46 @@
 \section{Introduction}
-ParSplice~\cite{perez:jctc20150parsplice}
+
+% What is the problem we are trying to solve
+[DESCRIBE PROBLEM WE ARE TRYING TO SOLVE - CUT/PASTE FROM PDSW PAPER]
+
+% What is Mantle
+To solve this problem, we integrate Mantle into
+ParSplice~\cite{perez:jctc20150parsplice}. Mantle is a dynamic policy engine
+that decomposes complicated services into manageable pieces so developers
+unfamiliar with a code-base can reason about its behavior. Administrators use
+the framework to describe ``when" they want data moved, ``where" they want data
+moved, and ``how much" of the data to move.  This abstraction helps developers
+unfamiliar with the domain quickly reason about, develop, and deploy new
+policies that control temporal and spatial locality. It has already proven to
+be a critical control plane for improving file system metadata load
+balancing~\cite{sevilla:sc15-mantle} and in this work we show its usefulness in
+cache management.
+
+% What are we going to show
+We show how Mantle:
+\begin{itemize}
+
+  \item decomposes cache management into independent policies, making the
+  problem more manageable and facilitating rapid development. We quickly implement
+  the ``how much" policy and focus on the ``when" policy for the majority of this paper.
+
+  \item has useful primitives that, while designed for file systems, are
+  crucial for effective cache management. This finding shows how the Mantle
+  engine generalizes to a different domain and code-base.
+
+  \item can be used to quickly deploy a variety of cache management strategies,
+  ranging from basic algorithms and heuristics to statistical models and machine
+  learning. This mixing and matching may not outperform a hard-coded solution but
+  can more adeptly change to different workloads and hardware. 
+
+\end{itemize}
+
+We demonstrate these contributions by changing the input to our molecular
+dynamics simulation, which changes the keyspace access patterns. 
+
+%First, we implement the ``how much" abstraction as an LRU and then we focus on
+%the ``when" abstraction. 
+
+%Manageable: abstracts away complexities of the system (pass around to others,
+%use different strategies) 
+

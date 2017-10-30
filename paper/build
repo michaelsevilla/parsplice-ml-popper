@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -x
 mkdir -p out
 
 cp biblio/references.bib references.bib
@@ -13,13 +13,16 @@ docker run --rm \
   -v `pwd`/.deps/acmart.cls:/root/acmart.cls \
   -v `pwd`/.deps/ACM-Reference-Format.bst:/root/ACM-Reference-Format.bst \
   -v `pwd`/out:/root/out \
-  tianon/latex sh -c \
-    "pdflatex paper &&
-     bibtex paper &&
-     pdflatex paper &&
-     pdflatex paper &&
+  --entrypoint=/bin/bash \
+  michaelsevilla/texlive:latest -c \
+    "pdflatex -shell-escape paper;
+     bibtex paper;
+     pdflatex -shell-escape paper;
+     pdflatex -shell-escape paper;
      mv paper.pdf /root/out/" &> build.log
+  #--entrypoint=/bin/bash -it michaelsevilla/texlive:latest
     
+  #tianon/latex sh -c \
 
 if [ $? != "0" ] ; then
   echo "ERROR"
