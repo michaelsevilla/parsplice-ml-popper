@@ -6,13 +6,13 @@
 % What is Mantle
 To solve this problem, we integrate Mantle into
 ParSplice~\cite{perez:jctc20150parsplice}. Mantle is a dynamic policy engine
-that decomposes complicated services into manageable pieces so developers
-unfamiliar with a code-base can reason about its behavior. Administrators use
-the framework to describe ``when" they want data moved, ``where" they want data
-moved, and ``how much" of the data to move.  This abstraction helps developers
-unfamiliar with the domain quickly reason about, develop, and deploy new
-policies that control temporal and spatial locality. It has already proven to
-be a critical control plane for improving file system metadata load
+that decomposes complicated services into manageable pieces, where developers
+write policies for ``when" they want data moved, ``where" they want data moved,
+and ``how much" of the data to move.  The framework then executes these
+policies whenever a decision needs to be made.  This abstraction helps
+developers unfamiliar with the domain quickly reason about, develop, and deploy
+new policies that control temporal and spatial locality. It has already proven
+to be a critical control plane for improving file system metadata load
 balancing~\cite{sevilla:sc15-mantle} and in this work we show its usefulness in
 cache management.
 

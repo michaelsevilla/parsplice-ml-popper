@@ -18,6 +18,39 @@ rates.
 {\it e.g.}, ParSplice key access locality.
 
 \subsubsection{Regime Detection}
+
+At each time step, we find the lowest ID and compare against the local minima,
+which is the smallest ID we have seen thus far. If we move left to right, the
+local minima never changes because the local minima will start small. If we
+move from right to left, the local minima changes at each access regime.  For
+points \(z\), \(y\), and \(x\), if the local minimum is the same we are in a
+regime. Processing \(y\), we set the local minima to be \(min(y, m_l)\), where
+\(m_l\) is the local minima of the previous time step of \(z\).
+
+This
+raises false positives for regime changes
+
+
+\begin{figure}[tb]
+\begin{minted}[linenos]{lua}
+local function when()
+  
+  if servers[whoami]["load"] > target then
+    if servers[whoami]["load"] > absorb_target then
+      WRstate(1)
+    end
+    if RDstate() == 1 then
+      return true
+    end
+  end
+  return false
+end
+\end{minted}
+\caption{ParSplice cache management policy.\label{lua:parsplice}}
+\end{figure}
+
+
+
 \subsubsection{Trajectory Length}
 
 \subsection{Failed, Overcomplicated Brains}
