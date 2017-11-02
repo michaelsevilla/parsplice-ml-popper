@@ -1,4 +1,5 @@
 \section{Mantle Brains: Tools We Plug In to Detect ``when"}
+\label{sec:mantle-brains}
 
 Requirements: run online, be fast enough to run as often as we want to detect
 regimes
@@ -19,22 +20,25 @@ rates.
 
 \subsubsection{Regime Detection}
 
-At each time step, we find the lowest ID and compare against the local minima,
+At each time step, we find the lowest ID and compare against the local minimum,
 which is the smallest ID we have seen thus far. If we move left to right, the
-local minima never changes because the local minima will start small. If we
-move from right to left, the local minima changes at each access regime.  For
+local minimum never changes because the local minimum will start small. If we
+move from right to left, the local minimum changes at each access regime.  For
 points \(z\), \(y\), and \(x\), if the local minimum is the same we are in a
-regime. Processing \(y\), we set the local minima to be \(min(y, m_l)\), where
-\(m_l\) is the local minima of the previous time step of \(z\).
-
-This
-raises false positives for regime changes
-
+regime. Processing \(y\), we set the local minimum to be \(min(y, m_l)\), where
+\(m_l\) is the local minimum of the previous time step of \(z\). The algorithm
+incorrectly detects a regime change if the local minimum of \(y\) is lower than
+local minimum of \(z\), since \(y\) may have points {\it within} \(z\); recall
+that we are trying to detect the whole fan, not just the bottom edge of each
+fan.
 
 \begin{figure}[tb]
 \begin{minted}[linenos]{lua}
+
+-- assume that (ts, keyid) are in a table
 local function when()
   
+
   if servers[whoami]["load"] > target then
     if servers[whoami]["load"] > absorb_target then
       WRstate(1)
