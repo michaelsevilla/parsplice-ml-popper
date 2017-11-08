@@ -14,8 +14,6 @@ while using only 7.6\% of the memory resources required by the base case.
 
 \end{abstract}
 
-
-
 \section{Introduction}
 
 The fine-grained data annotation capabilities provided by key-value storage is
@@ -32,16 +30,32 @@ parallel job. Unfortunately, if we scale the system the IO to the storage
 hierarchy will quickly saturate both the storage and bandwidth capacity of a
 single node. 
 
+\begin{figure}[t]
+  \noindent\includegraphics[width=0.5\textwidth]{figures/motivation-regimes.png}\\
+  \caption{The keyspace activity for ParSplice using two different growth
+rates.  The line shows the rate that EOM minima values are retrieved from the
+key-value store (\(y1\) axis) and the points along the bottom show the number
+of keys accessed in a 1 second sliding window (\(y2\) axis).
+\label{fig:motivation-regimes}}
+\end{figure}
+
 In this paper we present a detailed analysis of how the ParSplice application
 accesses key-value pairs over the course of a long running simulation across a
-variety of initial conditions. We reason that limiting the size of a cache on a
-single node saves memory and sacrifices negligible performance. This type of
-analysis (1) shows the capacity and resource requirements of a single node and
-(2) will help inform our load balancing policies for when we switch to a
-distributed key-value store back-end to store EOM minima. We need to know when
-and how to partition the keyspace: a smaller cache hurts performance because
-key-value pairs need to be retrieved from other nodes while a larger cache has
-higher memory pressure.
+variety of initial conditions.  This type of analysis (1) shows the capacity
+and resource requirements of a single node and (2) will help inform our load
+balancing policies for when we switch to a distributed key-value store back-end
+to store EOM minima. We need to know when and how to partition the keyspace: a
+smaller cache hurts performance because key-value pairs need to be retrieved
+from other nodes while a larger cache has higher memory pressure.
+
+For example, Figure~\ref{fig:motivation-regimes} shows the
+cache activity of a ParSplice node and demonstrates that small changes to the
+rates at which new atoms enter the simulation (\(\Delta\)) can have a strong
+effect on the timing and frequency with which new EOM minima are discovered and
+referenced.  The ParSplice caches on each node are trimmed when memory pressure
+reaches a threshold but the number of unique keys accessed (black points
+along bottom of both graphs) in Figure~\ref{fig:motivation-regimes} suggests
+that a small cache of EOM minima should be sufficient. 
 
 % What is Mantle
 To explore the effects of different cache management strategies, we link the
@@ -87,8 +101,6 @@ the policies in the Ceph file system that are used to load balance metadata,
 suggesting that there is potential for automatically adapting and generating
 policies dynamically. 
 
-%First, we implement the ``how much" abstraction as an LRU and then we focus on
-%the ``when" abstraction. 
 %Manageable: abstracts away complexities of the system (pass around to others,
 %use different strategies) 
 
