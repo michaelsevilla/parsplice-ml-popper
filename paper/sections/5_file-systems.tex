@@ -1,14 +1,15 @@
-\section{Relation to File Systems}
-\label{sec:relation-to-file-systems}
+\section{Relation to Load Balancing}
+\label{sec:relation-to-load-balancing}
 
 The code snippets in Figures~\ref{lua:parsplice} and~\ref{lua:cephfs} are the
 policies used in ParSplice and CephFS, respectively.  ParSplice uses policies
 to manage its caches and CephFS uses policies to control load balancing, but
-they both can be expressed with Mantle.  From a high-level the ParSplice policy
-trims the cache if the cache reaches a certain size {\it and} if it has already
-absorbed the initial burstiness of the workload; the CephFS policy migrates
-load if the metadata load is higher than the average load {\it and} the current
-load has been overloaded for more than two iterations.
+they both can be expressed with our data management language.  From a
+high-level the ParSplice policy trims the cache if the cache reaches a certain
+size {\it and} if it has already absorbed the initial burstiness of the
+workload; the CephFS policy migrates load if the metadata load is higher than
+the average load {\it and} the current load has been overloaded for more than
+two iterations.
 
 \textbf{Condition for ``Overloaded"} (Fig.~\ref{lua:parsplice}:Line 2;
 Fig.~\ref{lua:cephfs}:Line 2) - these lines detect whether the node is

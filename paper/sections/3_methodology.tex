@@ -2,13 +2,13 @@
 
 %  \item background: CephFS implementation
 To explore dynamic cache management policies that change during the run, we use
-a data management language and policy engine presented
+the data management language and policy engine presented
 in~\cite{sevilla:sc15-mantle}. The prototype in that paper was called Mantle
-and it was originally built on the Ceph file system so administrators could
-control file system metadata load balancing policies. We now refer to Mantle as
-a policy engine that supports our data management language.  The basic premise
-is that load balancing policies can be expressed with a simple API consisting
-of ``when", ``where", and ``how much". ``when" controls how aggressive or
+and it was originally built on the CephFS so administrators could control file
+system metadata data management policies. We now refer to Mantle as a policy
+engine that supports our data management language.  The basic premise is that
+load balancing policies can be expressed with a simple API consisting of
+``when", ``where", and ``how much". ``when" controls how aggressive or
 conservative the decisions are; ``where" lets the policy control how
 distributed or concentrated the data should be; and ``how much" controls the
 amount of data that should be sent.
@@ -24,14 +24,14 @@ can be used determine which key-value pairs should be moved to which node.
 %  \item library architecture, callbacks, environment
 
 We extracted Mantle as a library and Figure~\ref{fig:mantle} shows how it is
-linked into a service ({\it e.g.}, file system, key-value store, application).
-Administrators write policies from different domains, like statistics, machine
-learning, or storage systems, that that are embedded into the runtime. When the
-service makes decisions it executes the administrator-defined policies for
-when/where/how much and returns a decision. To do this, the service needs to be
-modified to (1) provide an environment of metrics and (2) identify where
-policies are set. These modification points are shown by the colored boxes in
-Figure~\ref{fig:mantle} and described below.
+linked into a service.  Administrators write policies from whatever domain they
+choose ({e.g.}, statistics, machine learning, storage system) and the policies
+are embedded into the runtime by Mantle. When the service makes decisions it
+executes the administrator-defined policies for when/where/how much and returns
+a decision.  To do this, the service needs to be modified to (1) provide an
+environment of metrics and (2) identify where policies are set. These
+modification points are shown by the colored boxes in Figure~\ref{fig:mantle}
+and described below.
 
 \begin{figure}[t]
   \noindent\includegraphics[width=0.5\textwidth]{figures/mantle.png}\\
@@ -65,7 +65,7 @@ decision. We chose Lua for simplicity, performance, and portability; it is a
 scripting language with simple syntax, which allows administrators to focus on
 the policies themselves; it was designed as an embeddable language, so it is
 lightweight and does less type checking; and it interfaces nicely with C/C++.
-The pink box in Figure~\ref{fig:mantle} shows an example policy for the
+The ``callback" box in Figure~\ref{fig:mantle} shows an example policy for the
 ``when()" callback in a distributed service, where the current server
 (\texttt{whoami}) migrates load if it is has load (\texttt{>0.1}) and if its
 neighbor server (\texttt{whoami + 1}) does not have load (\texttt{<0.1}). The
@@ -91,15 +91,15 @@ load = servers[0]['cpu']
 \end{minted}
 \end{figure}
 
-Other examples metrics used for file system metadata load balancing, such as
-memory pressure, are shown in Figure~\ref{fig:mantle}. The measurements and
+Other examples metrics used for file system metadata load balancing are shown
+by the ``environment" box in Figure~\ref{fig:mantle}. The measurements and
 exchange of metrics between servers is done by the service; Mantle in CephFS
 leverages metrics from other servers collected using CephFS's heartbeats.
 
-For time series metrics, the service passes array of \texttt{(timestamp,
+For time series metrics, the service passes an array of \texttt{(timestamp,
 value)} pairs to Mantle and the policies can iterate over the accesses. For
-example, a policy that uses accesses to a certain directory to make migration
-decisions collects that information using:
+example, a policy that uses accesses to a directory in a file system as a
+metric for load collects that information using:
 
 \begin{figure}[h]
 \footnotesize
@@ -124,7 +124,7 @@ itself.
 \subsection{Integrating Mantle into ParSplice}
 
 % env of metrics
-Using Mantle cluster metrics, we expose cache size, CPU utilization, memory
+Using Mantle cluster metrics, we expose cache size, CPU utilization, and memory
 pressure of the worker node to the cache management policies. In
 Section~\S\ref{sec:parsplice-keyspace-analysis} we only end up using the cache
 size although the other metrics proved to be valuable debugging tools. Using
@@ -140,5 +140,5 @@ alongside code that checks for memory pressure. It is executed right before the
 worker processes incoming and outgoing put/get transactions to the cache. As
 stated previously, we do not use the ``where" part of Mantle because we focus
 on a single node, but this part of the API will be used when we move the caches
-and storage nodes to a key-values store back-end that has load balancing and key
-redistribution.
+and storage nodes to a key-values store back-end that uses key load balancing and
+repartitioning.

@@ -50,11 +50,12 @@
 \begin{figure}[t]
 \noindent\includegraphics[width=0.5\textwidth]{figures/parsplice.png}\\
 \caption{The ParSplice architecture has a storage hierarchy of caches and a
-dedicated cache node (purple boxes) backed by a persistent database (orange). A
-splicer (S) tells worker nodes (W) to generate segments and workers employ
-tasks (T) for more parallelization. We focus on the worker node's cache circled
-in red, which facilitates communication and segment exchange between the worker
-and its \label{fig:parsplice}} \end{figure}
+dedicated cache node (boxes) backed by a persistent database (DB). A splicer
+(S) tells worker (W) to generate segments and workers employ tasks (T) for more
+parallelization. We focus on the worker's cache (circled), which facilitates
+communication and segment exchange between the worker and its
+\label{fig:parsplice}}
+\end{figure}
 
 ParSplice~\cite{perez:jctc20150parsplice} is an accelerated molecular dynamics
 (MD) simulation package developed at LANL. It is part of the Exascale Computing
@@ -75,14 +76,15 @@ the phases are:
 
 \end{enumerate}
 
-The computation can be parallelized by adding more workers or by adding worker
-tasks to parallelize individual workers.  The workers are stateless and read
-initial coordinates from the data store each time they begin generating
-segments. Since worker tasks do not maintain their own history, they can end up
-reading the same coordinates repeatedly. To mitigate the consequences of these
-repeated reads, ParSplice provisions a hierarchy of nodes to act as caches that
-sit in front of a single node persistent database.  Values are written to each
-tier and reads traverse up the hierarchy until they find the data. 
+The computation can be parallelized by adding more workers or by adding tasks
+to parallelize individual workers.  The workers are stateless and read initial
+coordinates from the data store each time they begin generating segments. Since
+worker tasks do not maintain their own history, they can end up reading the
+same coordinates repeatedly. To mitigate the consequences of these repeated
+reads, ParSplice provisions a hierarchy of processes to act as caches that sit
+in front of a single persistent database.  Values are written to each tier and
+reads traverse up the hierarchy until they find the data.  Caches also reside
+on the workers to service reads/writes from its tasks.  
 
 We use ParSplice to simulate the evolution of metallic nanoparticles that grow
 from the vapor phase. As the run progresses, the energy landscape of the system
@@ -119,12 +121,6 @@ We instrumented ParSplice with performance counters and keyspace counters.  The
 performance counters track ParSplice progress while keyspace counters track
 which keys are being accessed by the ParSplice ranks. Because the keyspace
 counters have high overhead we only turn them on for the keyspace analysis.
-The cache hierarchy is unmodified but for the persistent database node, we
-replace BerkeleyDB on NFS with LevelDB on Lustre. Original ParSplice
-experiments showed that BerkeleyDB's syncs caused reads/writes to bottleneck on
-the persistent database. We also use Riak's customized
-LevelDB\footnote{https://github.com/basho/leveldb} version, which comes
-instrumented with its own set of performance counters.
 
 \subsubsection*{Experimental Setup} All experiments ran on Trinitite, a Cray
 XC40 with 32 Intel Haswell 2.3GHz cores per node.  Each node has 128GB of RAM
@@ -133,18 +129,23 @@ RAM\footnote{Empirically, we find this threshold works well for most
 applications}. Note that this is an addition to the 30GB that ParSplice uses to
 manage other ranks on the same node.  A single Cray node produced trajectories
 that are \(5\times\) times longer than our 10 node CloudLab clusters and
-\(25\times\) longer than UCSC's 10 node cluster. As a result, it reaches
+\(25\times\) longer than our 10 node cluster at UCSC. As a result, it reaches
 different job phases faster and gives us a more comprehensive view of the
 workload. The performance gains compared to the commodity clusters have more to
 do with memory/PCI bandwidth than network.
 
-The scalability experiment uses 1 splicer, persistent database node, and
-in-memory database node and up to 2 workers. We scale up to 1024 tasks, which
-spans 32 nodes and disable hyper-threading because we experience variability in
-performance. For the rest of the experiments, we use 4 nodes, 1 splicer,
-persistent database node, in-memory database node, worker, and up to 512 tasks.
-The keyspace analysis is for the cache on the worker node, which is circled in
-red in Figure~\ref{fig:parsplice}.
+The scalability experiment uses 1 splicer, 1 persistent database, 1 cache
+process, and up to 2 workers. We scale up to 1024 tasks, which spans 32 nodes
+and disable hyper-threading because we experience unacceptable variability in
+performance. For the rest of the experiments, we use 4 nodes, 1 splicer, 1
+persistent database, 1 cache process, 1 worker, and up to 512 tasks.  The
+keyspace analysis that follows is for the cache on the worker node, which is
+circled in Figure~\ref{fig:parsplice}.  The cache hierarchy is unmodified but
+for the persistent database node, we replace BerkeleyDB on NFS with LevelDB on
+Lustre. Original ParSplice experiments showed that BerkeleyDB's syncs caused
+reads/writes to bottleneck on the persistent database. We also use Riak's
+customized LevelDB\footnote{https://github.com/basho/leveldb} version, which
+comes instrumented with its own set of performance counters.
 
 \begin{figure}[t]
   \noindent\includegraphics[width=0.5\textwidth]{figures/methodology-keyspace.png}\\
@@ -163,7 +164,7 @@ red in Figure~\ref{fig:parsplice}.
 \end{figure}
 
 \subsubsection*{Scalability} Figure~\ref{fig:methodology-keyspace} shows the
-keyspace size (black annotations) and request load (bars) after a one hour run
+keyspace size (text annotations) and request load (bars) after a one hour run
 with a different number of workers (\(x\) axis). While the keyspace size and
 capacity is relatively modest the memory usage scales linearly with the number
 of workers. This is a problem if we want to scale to Trinitite's 6000 cores.
@@ -197,12 +198,13 @@ coordinates later in the run (this motivates
 Section~\S\ref{sec:cache-management-using-domain-specific-knowledge}).  The
 growth rate, temperature, and number of workers have a predictable effect on
 the structure of the keyspace.  Figure~\ref{fig:methodology-keys} shows that
-the number of reads changes with different growth rates, but that the spatial
-locality of key accesses is similar ({\it e.g.}, some keys are still
-\(5\times\) more popular than others).  Figure~\ref{fig:motivation-regimes}
-shows how entropy for different growth rates has temporal locality, as the
-reads per second for \(\Delta_2\) looks like the reads per second for
-\(\Delta_1\) stretched out along the time axis.  Trends also exist for
-temperature and number of workers but are omitted here for space. This
-structure means that we can learn the regimes and adapt the storage system
-(this motivates Section~\S\ref{sec:cache-management-using-domain-specific-knowledge}).
+the number of reads changes with different initial conditions (\(Delta\)), but
+that the spatial locality of key accesses is similar ({\it e.g.}, some keys are
+still \(5\times\) more popular than others).
+Figure~\ref{fig:motivation-regimes} shows how entropy for different growth
+rates has temporal locality, as the reads per second for \(\Delta_2\) looks
+like the reads per second for \(\Delta_1\) stretched out along the time axis.
+Trends also exist for temperature and number of workers but are omitted here
+for space. This structure means that we can learn the regimes and adapt the
+storage system (this motivates
+Section~\S\ref{sec:cache-management-using-domain-specific-knowledge}).
