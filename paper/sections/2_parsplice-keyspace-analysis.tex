@@ -47,10 +47,20 @@
 \section{ParSplice Keyspace Analysis}
 \label{sec:parsplice-keyspace-analysis}
 
+\begin{figure}[t]
+\noindent\includegraphics[width=0.5\textwidth]{figures/parsplice.png}\\
+\caption{The ParSplice architecture has a storage hierarchy of caches and a
+dedicated cache node (purple boxes) backed by a persistent database (orange). A
+splicer (S) tells worker nodes (W) to generate segments and workers employ
+tasks (T) for more parallelization. We focus on the worker node's cache circled
+in red, which facilitates communication and segment exchange between the worker
+and its \label{fig:parsplice}} \end{figure}
+
 ParSplice~\cite{perez:jctc20150parsplice} is an accelerated molecular dynamics
 (MD) simulation package developed at LANL. It is part of the Exascale Computing
 Project\footnote{http://www.exascale.org/bdec/} and is important to LANL's
-Materials for the Future initiative. Its phases are:
+Materials for the Future initiative. As shown in Figure~\ref{fig:parsplice},
+the phases are:
 
 \begin{enumerate}
 
@@ -116,16 +126,25 @@ the persistent database. We also use Riak's customized
 LevelDB\footnote{https://github.com/basho/leveldb} version, which comes
 instrumented with its own set of performance counters.
 
-All experiments ran on Trinitite, a Cray XC40 with 32 Intel Haswell 2.3GHz
-cores per node.  Each node has 128GB of RAM and our goal is to limit the size
-of the cache to 3\% of RAM\footnote{Empirically, we find this threshold works
-well for most applications}. Note that this is an addition to the 30GB that
-ParSplice uses to manage other ranks on the same node.  A single Cray node
-produced trajectories that are \(5\times\) times longer than our 10 node
-CloudLab clusters and \(25\times\) longer than UCSC's 10 node cluster. As a
-result, it reaches different job phases faster and gives us a more
-comprehensive view of the workload. The performance gains compared to the
-commodity clusters have more to do with memory/PCI bandwidth than network.
+\subsubsection*{Experimental Setup} All experiments ran on Trinitite, a Cray
+XC40 with 32 Intel Haswell 2.3GHz cores per node.  Each node has 128GB of RAM
+and our goal is to limit the size of the cache to 3\% of
+RAM\footnote{Empirically, we find this threshold works well for most
+applications}. Note that this is an addition to the 30GB that ParSplice uses to
+manage other ranks on the same node.  A single Cray node produced trajectories
+that are \(5\times\) times longer than our 10 node CloudLab clusters and
+\(25\times\) longer than UCSC's 10 node cluster. As a result, it reaches
+different job phases faster and gives us a more comprehensive view of the
+workload. The performance gains compared to the commodity clusters have more to
+do with memory/PCI bandwidth than network.
+
+The scalability experiment uses 1 splicer, persistent database node, and
+in-memory database node and up to 2 workers. We scale up to 1024 tasks, which
+spans 32 nodes and disable hyper-threading because we experience variability in
+performance. For the rest of the experiments, we use 4 nodes, 1 splicer,
+persistent database node, in-memory database node, worker, and up to 512 tasks.
+The keyspace analysis is for the cache on the worker node, which is circled in
+red in Figure~\ref{fig:parsplice}.
 
 \begin{figure}[t]
   \noindent\includegraphics[width=0.5\textwidth]{figures/methodology-keyspace.png}\\
@@ -165,7 +184,7 @@ worker tasks; their magnitude is smaller than reads because the caches ignore
 redundant write requests. The number of read and write requests are highest at
 the beginning of the run when worker tasks generate segments for the same
 state, which is computationally cheap (this motivates
-Section~\S\ref{sec:static-load-balancing}).
+Section~\S\ref{sec:cache-management-using-system-archiecture-knowledge}).
 
 \subsubsection*{Entropy increases over time} The reads per second in
 Figure~\ref{fig:motivation-regimes} show that the number of requests decreases
@@ -175,10 +194,10 @@ shown in Figure~\ref{fig:methodology-keys}, where reads are plotted for each
 unique state, or key, along the \(x\) axis. Keys are more popular than others
 (up to \(5\times\)) because worker tasks start generating states with different
 coordinates later in the run (this motivates
-Section~\S\ref{sec:the-need-for-dynamic-load-balancing-policies}).  The growth
-rate, temperature, and number of workers have a predictable effect on the
-structure of the keyspace.  Figure~\ref{fig:methodology-keys} shows that the
-number of reads changes with different growth rates, but that the spatial
+Section~\S\ref{sec:cache-management-using-domain-specific-knowledge}).  The
+growth rate, temperature, and number of workers have a predictable effect on
+the structure of the keyspace.  Figure~\ref{fig:methodology-keys} shows that
+the number of reads changes with different growth rates, but that the spatial
 locality of key accesses is similar ({\it e.g.}, some keys are still
 \(5\times\) more popular than others).  Figure~\ref{fig:motivation-regimes}
 shows how entropy for different growth rates has temporal locality, as the
@@ -186,4 +205,4 @@ reads per second for \(\Delta_2\) looks like the reads per second for
 \(\Delta_1\) stretched out along the time axis.  Trends also exist for
 temperature and number of workers but are omitted here for space. This
 structure means that we can learn the regimes and adapt the storage system
-(this motivates Section~\S\ref{sec:ml-for-the-keyspace}).
+(this motivates Section~\S\ref{sec:cache-management-using-domain-specific-knowledge}).

@@ -59,3 +59,23 @@ Such work is made possible with Mantle's ability to dynamically change
 policies.
 
 \section{Conclusion}
+
+Data management encompasses a wide range of techniques that vary by domain and
+service. Yet, the techniques require policies that shape the decision making
+and finding the best policies is a difficult, multi-dimensional problem. We
+observe that many of the primitives and resulting strategies have enough in
+common that they can be expressed with similar semantics. We present a data
+management language and policy engine, called Mantle that is general enough to
+express complicated, dynamic policies for two different domains and services.
+Rather than attempting to construct a single, complex load balancing policy
+that works for a variety of scenarios, we instead use the Mantle framework to
+enable software-defined storage systems to flexibly change policies as the
+workload changes over time.  In our analysis of the ParSplice key-value
+workload we have detected clear workload regimes that are sensitive to the
+initial conditions and the scale and duration of the simulation. We have also
+demonstrated that changing load balancing policies at runtime in response to
+the current workload is an effective mechanism to providing better load
+distribution.  Finally, we have demonstrated that Mantle is flexible enough to
+support domain-specific knowledge, which lays the groundwork for future work in
+adaptable policies and policy generation.
+

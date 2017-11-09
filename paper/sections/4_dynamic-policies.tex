@@ -8,12 +8,12 @@ implemented as the ``when" and ``how much" policies from the Mantle API; the
 ``where" callback does not make sense for a single node (segments are either in
 the cache or they are not). The evaluation metric is the accuracy and runtime
 of each strategy; the strategy should be accurate enough so as to sacrifice
-negligible performance and fast tenough to run as often as we want to detect
+negligible performance and fast enough to run as often as we want to detect
 regimes.
 
 First we sized the cache according to our system specific knowledge. By
 ``system", we mean the hardware and software of the storage hierarchy. We look
-at request rate, unique keys in a sliding window, and bandwidth capabilties. For
+at request rate, unique keys in a sliding window, and bandwidth capabilities. For
 example, we know that LevelDB cannot handle high IO request rates.
 
 % technical details
@@ -27,12 +27,10 @@ quickly otherwise.
 % results: cache size trade-offs
 \begin{figure}[t]
   \noindent\includegraphics[width=0.5\textwidth]{figures/methodology-tradeoff.png}\\
-
   \caption{The performance and resource utilization trade-off for different
-cache sizes. ``Baseline" is
-ParSplice unmodified and the ``Policy: Constrain Cache Size" graph limits the
-size of the cache to save memory.  \label{fig:methodology-tradeoff}}
-
+  cache sizes. ``Baseline" is
+  ParSplice unmodified and the ``Policy: Constrain Cache Size" graph limits the
+  size of the cache to save memory.  \label{fig:methodology-tradeoff}}
 \end{figure}
 
 The results for different cache sizes for a growth rate of \(\Delta_1\) over a
@@ -74,14 +72,6 @@ should suffice after the initial read flash crowd passes because
 the keyspace is far less active. This suggests a two-part load balancing
 policy.
 
-% what is mantle
-To explore dynamic load balancing policies ({\it i.e.} policies that change
-during the run), we use the Mantle approach.  Mantle is a framework built on the
-Ceph file system that lets administrators control file system metadata load
-balancing policies. The basic premise is that load balancing policies can be
-expressed with a simple API consisting of ``when", ``where", and ``how much".
-The succinctness of the API lets users inject multiple, dynamic policies.
-
 % Why is this a good idea
 Although ParSplice does not use a distributed file system, its workload is very
 similar because the minima key-value store responds to small and frequent
@@ -101,9 +91,9 @@ Mantle and formalized balancers that were good for file systems.
   on the \(x\) axis.  \label{fig:methodology-tradeoff-dynamic}}
 \end{figure}
 
-Figure~\ref{fig:methodology-tradeoff-dynamic} shows the results of using the
-Mantle API to program a dynamic load balancing policy into ParSplice that
-switches between two policies:
+Figure~\ref{fig:methodology-tradeoff-dynamic} shows the results of using Mantle
+to program a dynamic load balancing policy into ParSplice that switches between
+two policies:
 
 \begin{itemize}
   \item unlimited growth policy: cache increases on every write
@@ -169,7 +159,7 @@ we should use for different job permutations.
   \noindent\includegraphics[height=5cm,width=0.4\textwidth]{figures/keyspace-zoomed.png}\\
 
   \caption{Key activity for a 4 hour run shows groups of accesses to the same
-  subset of keys. Detecting this ``access regimes" leads to a more accurate cache
+  subset of keys. Detecting these ``access regimes" leads to a more accurate cache
   management strategy.\label{fig:keyspace-zoomed}}
 
 \end{figure}
