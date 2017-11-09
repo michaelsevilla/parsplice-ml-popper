@@ -71,6 +71,25 @@ The ``callback" box in Figure~\ref{fig:mantle} shows an example policy for the
 neighbor server (\texttt{whoami + 1}) does not have load (\texttt{<0.1}). The
 load is calculated using the metrics provided by the environment.
 
+Mantle also provides functions for persisting state across decisions.
+\texttt{WRState(s)} saves state \texttt{s}, which can be a number or boolean
+value, and \texttt{RDState()} returns the state saved by a previous iteration.
+For example, a ``when" policy can avoid trimming a cache or migrating data if
+it had performed that operation in the previous decision using:
+
+\begin{figure}[h]
+\footnotesize
+\begin{minted}{lua}
+if RDState() == 1 then
+  WRState(0)   -- the next decision will return true
+  return false
+else then
+  WRState(1)   -- the next decision will return false
+  return true
+end
+\end{minted}
+\end{figure}
+
 %of timestamp (ts), value pairs representing accesses over time types of
 \subsubsection{Environment of Metrics} services can expose cluster metrics for
 describing resource utilization and time series metrics for describing accesses
