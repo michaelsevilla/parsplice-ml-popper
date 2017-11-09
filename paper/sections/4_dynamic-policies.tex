@@ -9,7 +9,9 @@ implemented as the ``when" and ``how much" policies from the Mantle API; the
 the cache or they are not). The evaluation metric is the accuracy and runtime
 of each strategy; the strategy should be accurate enough so as to sacrifice
 negligible performance and fast enough to run as often as we want to detect
-regimes.
+regimes. The goal of the following sections is not to find an optimal solution,
+as this can be done with parameter sweeps for thresholds; rather, we try to
+find techniques that work for a range of inputs and system setups.
 
 First we sized the cache according to our system specific knowledge. By
 ``system", we mean the hardware and software of the storage hierarchy. We look

@@ -1,4 +1,4 @@
-%\section{ParSplice Keyspace Analysis}
+
 %
 %We demonstrate these contributions by changing the input to our molecular
 %dynamics simulation, which changes the keyspace access patterns. 
@@ -87,25 +87,35 @@ reads traverse up the hierarchy until they find the data.  Caches also reside
 on the workers to service reads/writes from its tasks.  
 
 We use ParSplice to simulate the evolution of metallic nanoparticles that grow
-from the vapor phase. As the run progresses, the energy landscape of the system
-becomes more complex. Two domain factors control the number of entries in the
-data store: the growth rate and the temperature. The growth rate controls how
-quickly new atoms are added to the nanoparticle: fast growth rates lead to
-non-equilibrium conditions, and hence increase the number of states that can be
-visited. However, as the particle grows, the simulation slows down because the
-calculations become more expensive, limiting the rate at which new states are
-visited. On the other hand, the temperature controls how easily a trajectory
-can jump from state to state; higher temperatures lead to more frequent
-transitions.
+from the vapor phase.  This simulation stresses the storage hierarchy more than
+other input decks because it uses a cheap potential, has a small number of
+atoms, and operates in a complex energy landscape with many accessible states.
+As the run progresses, the energy landscape of the system becomes more complex
+and more states are visited.  Two domain factors control the number of entries
+in the data store: the growth rate and the temperature. The growth rate
+controls how quickly new atoms are added to the nanoparticle: fast growth rates
+lead to non-equilibrium conditions, and hence increase the number of states
+that can be visited.  However, as the particle grows, the simulation slows down
+because the calculations become more expensive, limiting the rate at which new
+states are visited.  On the other hand, the temperature controls how easily a
+trajectory can jump from state to state; higher temperatures lead to more
+frequent transitions but temperatures that are too high result in meaningless
+simulations because trajectories have so much energy that they are equally
+likely to visit any random state. 
 
-The nanoparticle simulation stresses the data store architecture of ParSplice.
-It visits more states than other input decks because the system uses a cheap
-potential, has a small number of atoms, and operates in a complex energy
-landscape with many accessible states. Changing growth rates and temperature
-alters the size, shape, and locality of the data store keyspace. Lower
-temperatures and smaller growth rates create hotter keys with smaller keyspaces
-as many segments are generated in the same set of states before the trajectory
-can escape to a new region of state space.
+Changing growth rates and temperature alters the size, shape, and locality of
+the data store keyspace. Lower temperatures and smaller growth rates create
+hotter keys with smaller keyspaces as many segments are generated in the same
+set of states before the trajectory can escape to a new region of state space.
+In Figure~\ref{fig:motivation-regimes}, the \(\Delta_1\) growth rate adds atoms
+every 100K microseconds while the \(\Delta_2\) growth rate adds atoms every 1
+million microseconds. So \(\Delta_2\) has a smaller growth rate resulting in
+hotter keys (line on \(y1\) axis) and a smaller keyspace (dots on the \(y2\)
+axis).  Values smaller than \(\Delta_2\)'s growth rate or a temperature of 400
+degrees results in very little database activity because state transitions take
+too long. Similarly, values larger than \(\Delta_1\)'s growth rate or a
+temperature of 4000 degrees result in an equally meaningless simulation as
+transitions are unrealistic.
 
 Our evaluation uses the total ``trajectory length" as the goodness metric. This
 value is the duration of the overall trajectory produced by ParSplice. At
@@ -198,7 +208,7 @@ coordinates later in the run (this motivates
 Section~\S\ref{sec:cache-management-using-domain-specific-knowledge}).  The
 growth rate, temperature, and number of workers have a predictable effect on
 the structure of the keyspace.  Figure~\ref{fig:methodology-keys} shows that
-the number of reads changes with different initial conditions (\(Delta\)), but
+the number of reads changes with different initial conditions (\(\Delta\)), but
 that the spatial locality of key accesses is similar ({\it e.g.}, some keys are
 still \(5\times\) more popular than others).
 Figure~\ref{fig:motivation-regimes} shows how entropy for different growth
