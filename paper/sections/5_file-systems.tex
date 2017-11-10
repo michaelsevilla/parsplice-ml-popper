@@ -1,55 +1,43 @@
 \section{Relation to Load Balancing}
 \label{sec:relation-to-load-balancing}
 
-The code snippets in Figures~\ref{lua:parsplice} and~\ref{lua:cephfs} are the
-policies used in ParSplice and CephFS, respectively.  ParSplice uses policies
-to manage its caches and CephFS uses policies to control load balancing, but
-they both can be expressed with our data management language.  From a
-high-level the ParSplice policy trims the cache if the cache reaches a certain
-size {\it and} if it has already absorbed the initial burstiness of the
-workload; the CephFS policy migrates load if the metadata load is higher than
-the average load {\it and} the current load has been overloaded for more than
-two iterations.
+In the previous section, we used our data management language and the Mantle
+policy engine to design effective cache management strategies for a new service
+and domain. In this section, we compare and contrast the policies examined for
+file system metadata load balancing in~\cite{sevilla:sc15-mantle} with the ones
+designed for cache management in ParSplice. The similarities show how the
+``when"/``where"/``how much" abstractions, data anagement language, and policy
+engine may be widely applicable to other data management techniques, such as
+QoS, scheduling, and batching.
 
-\textbf{Condition for ``Overloaded"} (Fig.~\ref{lua:parsplice}:Line 2;
-Fig.~\ref{lua:cephfs}:Line 2) - these lines detect whether the node is
+\subsection{File Systems}
+From a high-level the ParSplice policy trims the cache if the cache reaches a
+certain size {\it and} if it has already absorbed the initial burstiness of the
+workload; the CephFS poicy, which is shown in Figure~\ref{srd:lua-cephfs},
+migrates load if the metadata load is higher than the average load {\it and}
+the current load has been overloaded for more than two iterations.
+
+\textbf{Condition for ``Overloaded"} (Fig.~\ref{src:lru-dyn}: Line 2;
+Fig.~\ref{lua:cephfs}: Line 2) - these lines detect whether the node is
 overloaded using the ``load" calculated in the load callback; while the load
 calculations and thresholds are different, the actual logic is exactly the
 same.  Recall that this decision is made locally because there is no global
 scheduler or centralized intelligence. 
 
-\textbf{State Persisted Across Decisions} (Fig.~\ref{lua:parsplice}:Lines 5,6;
-Fig~\ref{lua:cephfs}:Lines 3,4,10) - these lines use Mantle to write/read state
+\textbf{State Persisted Across Decisions} (Fig.~\ref{src:lru-dyn}: Lines 4,6;
+Fig~\ref{lua:cephfs}: Lines 3,4,10) - these lines use Mantle to write/read state
 from previous decisions.  For ParSplice, we save a boolean that indicates
 whether we have absorbed the workload's initial burstiness. For CephFS, we save
 the number of consecutive instances that the server has been overloaded. We
 also clear the count (Line 10) if the server is no longer overloaded. The
 underlying implementation saves the values to local disk.
 
-\textbf{Condition that Switches Policy} (Fig.~\ref{lua:parsplice}:Line 3;
-Fig.~\ref{lua:cephfs}:Line 5) - these lines switch the policies using
+\textbf{Condition that Switches Policy} (Fig.~\ref{src:lru-dyn}: Line 6;
+Fig.~\ref{lua:cephfs}: Line 5) - these lines switch the policies using
 information from previous decisions. ParSplice trims its cache once it eclipses
 the ``absorb" threshold while CephFS allows balancing when overloaded for more
 than two iterations. The persistent state is essential for both of these
 policy-switching conditions.
-
-\begin{figure}[t]
-\footnotesize
-\begin{minted}[xleftmargin=3em,linenos]{lua}
-local function when()
-  if servers[whoami]["load"] > target then
-    if servers[whoami]["load"] > absorb_target then
-      WRstate(1)
-    end
-    if RDstate() == 1 then
-      return true
-    end
-  end
-  return false
-end
-\end{minted}
-\caption{ParSplice cache management policy.\label{lua:parsplice}}
-\end{figure}
 
 \begin{figure}[t]
 \footnotesize
@@ -77,6 +65,12 @@ end
   \item Nathan's Trace
 \end{itemize}
 
-\subsection{Using File System Balancers for ParSplice}
-\subsection{Using ParSplice Balancers for File Systems}
-\subsection{Visualizing File System Traces like ParSplice Keyspace Traces}
+\subsection{Using File System Policies for ParSplice}
+% mantle policies
+\subsection{Using ParSplice Policies for File Systems}
+% burstiness of creates then compile
+
+\subsection{Cross-pollinating Policies}
+% QoS, MRC, RAD - scheduing
+%\subsection{Visualizing File System Traces like ParSplice Keyspace Traces}
+

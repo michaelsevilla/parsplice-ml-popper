@@ -123,7 +123,7 @@ two policies:
 
 The actual policy is shown in Figure~\ref{src:lru-dyn} where the only
 difference between the code snippet in Figure~\ref{src:lru} is the addition of
-lines 2-9. Note that policy also uses the \texttt{RDState} and \texttt{WRState}
+lines 2-7. Note that policy also uses the \texttt{RDState} and \texttt{WRState}
 functions described in Section~\S\ref{sec:extracting}.
 
 \begin{figure}[t]
@@ -131,15 +131,11 @@ functions described in Section~\S\ref{sec:extracting}.
 \centering
 \begin{minted}[xleftmargin=3em,linenos]{lua}
 function when()
-  policy = RDState()
-  if policy == 0
-    if servers[whoami]['cachesize'] > 100K then
-      WRState(1)
-      policy = 1
+  if server[whoami]['cachesize'] > n then
+    if server[whoami]['cachesize'] > 100K then
+      WRstate(1)
     end
-  end
-  if policy == 1
-    if servers[whoami]['cachesize'] > n then
+    if RDstate() == 1 then
       return true
     end
   end
