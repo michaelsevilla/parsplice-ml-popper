@@ -33,9 +33,9 @@ the ``absorb" threshold while CephFS allows balancing when overloaded for more
 than two iterations. The persistent state is essential for both of these
 policy-switching conditions.
 
-\begin{figure}[tb]
+\begin{figure}[t]
 \footnotesize
-\begin{minted}[linenos]{lua}
+\begin{minted}[xleftmargin=3em,linenos]{lua}
 local function when()
   if servers[whoami]["load"] > target then
     if servers[whoami]["load"] > absorb_target then
@@ -51,9 +51,9 @@ end
 \caption{ParSplice cache management policy.\label{lua:parsplice}}
 \end{figure}
 
-\begin{figure}[tb]
+\begin{figure}[t]
 \footnotesize
-\begin{minted}[linenos]{lua}
+\begin{minted}[xleftmargin=3em,linenos]{lua}
 local function when()
   if servers[whoami]["load"] > target then
     overloaded = RDstate() + 1

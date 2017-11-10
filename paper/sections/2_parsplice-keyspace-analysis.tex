@@ -147,8 +147,8 @@ do with memory/PCI bandwidth than network.
 The scalability experiment uses 1 splicer, 1 persistent database, 1 cache
 process, and up to 2 workers. We scale up to 1024 tasks, which spans 32 nodes
 and disable hyper-threading because we experience unacceptable variability in
-performance. For the rest of the experiments, we use 4 nodes, 1 splicer, 1
-persistent database, 1 cache process, 1 worker, and up to 512 tasks.  The
+performance. For the rest of the experiments, we use 8 nodes, 1 splicer, 1
+persistent database, 1 cache process, 1 worker, and up to 256 tasks.  The
 keyspace analysis that follows is for the cache on the worker node, which is
 circled in Figure~\ref{fig:parsplice}.  The cache hierarchy is unmodified but
 for the persistent database node, we replace BerkeleyDB on NFS with LevelDB on

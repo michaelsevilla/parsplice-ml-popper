@@ -40,9 +40,34 @@ The results for different cache sizes for a growth rate of \(\Delta_1\) over a
 Figure~\ref{fig:methodology-tradeoff}.  ``Baseline" is the performance of
 unmodified ParSplice  measured in trajectory duration (\(y\) axis) and
 utilization is measured with memory footprint of just the cache (\(y2\) axis).
-The other graph shares the \(y\) axis and shows the trade-off of constraining
-the cache to different sizes.  The error bars are the standard deviation of 3
-runs. 
+The other graph shares the \(y\) axis and shows the trade-off of using a basic
+LRU-style cache for different cache sizes, implemented using the ``when" and
+``how much" policies in Figure~\ref{src:lru}.  The error bars are the standard
+deviation of 3 runs. 
+
+\begin{figure}[t]
+\footnotesize
+\centering
+\begin{minted}[xleftmargin=3em,linenos]{lua}
+function when()
+  if server[whoami]['cachesize'] > n then
+    return true
+  end
+  return false
+end
+
+function howmuch()
+  if servers[whoami]['cachesize'] > n
+    return servers[whoami]['cachesize'] - n
+  end
+  return 0
+end
+\end{minted}
+\caption{Policy that implements a basic LRU cache. The performance and memory
+utilization for different values of \(n\) are graphed in
+Figure~\ref{fig:methodology-tradeoff}.
+\label{src:lru}}
+\end{figure}
 
 % results: raw numbers
 Although the keyspace grows to 150K, a 100K key cache achieves 99\% of the
@@ -101,6 +126,38 @@ two policies:
   \item unlimited growth policy: cache increases on every write
   \item \(n\) key limit policy: cache constrained to \(n\) keys
 \end{itemize}
+
+The actual policy is shown in Figure~\ref{src:lru-dyn} where the only
+difference between the code snippet in Figure~\ref{src:lru} is the addition of
+lines 2-9. Note that policy also uses the \texttt{RDState} and \texttt{WRState}
+functions described in Section~\S\ref{sec:extracting}.
+
+\begin{figure}[t]
+\footnotesize
+\centering
+\begin{minted}[xleftmargin=3em,linenos]{lua}
+function when()
+  policy = RDState()
+  if policy == 0
+    if servers[whoami]['cachesize'] > 100K then
+      WRState(1)
+      policy = 1
+    end
+  end
+  if policy == 1
+    if servers[whoami]['cachesize'] > n then
+      return true
+    end
+  end
+  return false
+end
+\end{minted}
+\caption{A more complicated LRU-based cache policy that has two parts. After
+absorbing the initial burstiness of the workload, the policy switches to a more
+constrained cache to limit memory usage. The performance/utilization for
+different values of \texttt{n} is shown in
+Figure~\ref{fig:methodology-tradeoff-dynamic}. \label{src:lru-dyn}}
+\end{figure}
 
 We trigger the policy switch at 100K keys to absorb the flash crowd at the
 beginning of the run. Once triggered, keys are evicted to bring the size of the
