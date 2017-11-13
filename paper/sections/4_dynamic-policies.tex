@@ -1,5 +1,16 @@
+%\subsection{Trajectory Length}
+%
+%\subsection{Cloud Techniques: Elastic Search}
+%
+%What if we re-provision resources in response to events outside the
+%application's control, such as a slow Lustre.
+%
+%\subsection{Future work}
+%
+%How Much: cache policy from past, regime detection, Belady's Min
+
 \section{Cache Management Using System Architecture Knowledge}
-\label{sec:cache-management-using-system-archiecture-knowledge}
+\label{sec:arch-specific}
 
 Using the Mantle policy engine, we test a variety of cache management tools and
 algorithms on a single in-memory database node using the keyspace analysis in
@@ -203,7 +214,7 @@ job lengths).  To solve that problem, we need a way to identify what thresholds
 we should use for different job permutations.
 
 \section{Cache Management Using Domain-Specific Application Knowledge}
-\label{sec:cache-management-using-domain-specific-knowledge}
+\label{sec:dom-specific}
 \begin{figure}[t]
   \noindent\includegraphics[height=5cm,width=0.4\textwidth]{figures/keyspace-zoomed.png}\\
 
@@ -274,13 +285,4 @@ local minimum of \(z\), since \(y\) may have points {\it within} \(z\); recall
 that we are trying to detect the whole fan, not just the bottom edge of each
 fan.
 
-\subsection{Trajectory Length}
 
-\subsection{Cloud Techniques: Elastic Search}
-
-What if we re-provision resources in response to events outside the
-application's control, such as a slow Lustre.
-
-\subsection{Future work}
-
-How Much: cache policy from past, regime detection, Belady's Min

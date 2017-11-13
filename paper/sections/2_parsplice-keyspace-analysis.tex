@@ -195,7 +195,7 @@ worker tasks; their magnitude is smaller than reads because the caches ignore
 redundant write requests. The number of read and write requests are highest at
 the beginning of the run when worker tasks generate segments for the same
 state, which is computationally cheap (this motivates
-Section~\S\ref{sec:cache-management-using-system-archiecture-knowledge}).
+Section~\S\ref{sec:dom-specific}).
 
 \subsubsection*{Entropy increases over time} The reads per second in
 Figure~\ref{fig:motivation-regimes} show that the number of requests decreases
@@ -204,10 +204,9 @@ imbalance for the two growth rates in Figure~\ref{fig:motivation-regimes} are
 shown in Figure~\ref{fig:methodology-keys}, where reads are plotted for each
 unique state, or key, along the \(x\) axis. Keys are more popular than others
 (up to \(5\times\)) because worker tasks start generating states with different
-coordinates later in the run (this motivates
-Section~\S\ref{sec:cache-management-using-domain-specific-knowledge}).  The
-growth rate, temperature, and number of workers have a predictable effect on
-the structure of the keyspace.  Figure~\ref{fig:methodology-keys} shows that
+coordinates later in the run (this motivates Section~\S\ref{sec:dom-specific}).
+The growth rate, temperature, and number of workers have a predictable effect
+on the structure of the keyspace.  Figure~\ref{fig:methodology-keys} shows that
 the number of reads changes with different initial conditions (\(\Delta\)), but
 that the spatial locality of key accesses is similar ({\it e.g.}, some keys are
 still \(5\times\) more popular than others).
@@ -216,5 +215,4 @@ rates has temporal locality, as the reads per second for \(\Delta_2\) looks
 like the reads per second for \(\Delta_1\) stretched out along the time axis.
 Trends also exist for temperature and number of workers but are omitted here
 for space. This structure means that we can learn the regimes and adapt the
-storage system (this motivates
-Section~\S\ref{sec:cache-management-using-domain-specific-knowledge}).
+storage system (this motivates Section~\S\ref{sec:dom-specific}).

@@ -98,15 +98,13 @@ policies that control temporal and spatial locality. We show that Mantle:
 % - autonomic: lays groundwork for an adaptable policy that mixes/matches policies
 % FUTURE WORK
 
-This last contribution is explored in
-Sections~\S\ref{sec:cache-management-using-system-archiecture-knowledge}
-and~\S\ref{sec:cache-management-using-domain-specific-knowledge}, where we try
-a range of policies from different disciplines; but more importantly, in
-Section~\S\ref{sec:relation-to-load-balancing}, we conclude that the collection
-of policies we designed for ParSplice's cache management are very similar to
-the policies used to load balance metadata in the Ceph file system (CephFS)
-suggesting that there is potential for automatically adapting and generating
-policies dynamically. 
+This last contribution is explored in Sections~\S\ref{sec:arch-specific}
+and~\S\ref{sec:dom-specific}, where we try a range of policies from different
+disciplines; but more importantly, in Section~\S\ref{sec:scope}, we conclude
+that the collection of policies we designed for ParSplice's cache management
+are very similar to the policies used to load balance metadata in the Ceph file
+system (CephFS) suggesting that there is potential for automatically adapting
+and generating policies dynamically. 
 
 %Manageable: abstracts away complexities of the system (pass around to others,
 %use different strategies) 
