@@ -9,9 +9,10 @@ variety of techniques, ranging from basic algorithms and heuristics to
 statistical models, calculus, and machine learning. While Mantle was originally
 designed for distributed file systems, we show how the collection of
 abstractions effectively decomposes the problem into manageable policies for a
-different domain and service.  Our exploration of this space results in a two
-policy scheme that achieves 96\% efficiency while using only 7.6\% of the
-memory resources required by the base case. 
+different domain and service.  Our exploration of this space results in a
+dynamically sized cache policy that, for our initial conditions, sacrifices
+negligible performance while using only 28\% of the memory required by our
+hand-tuned cache.
 
 \end{abstract}
 
@@ -42,15 +43,23 @@ adjust the cache accordingly.
 \label{fig:cache-management}}
 \end{figure}
 
-In this paper, we design cache management policies for the ParSplice worker,
-driven by a detailed analysis of the key-value accesses over the course of a
-long running simulation across a variety of initial conditions. Our final
-solution, shown by the ``Dynamically Sized Cache" line in
-Figure~\ref{fig:cache-management}, detects keyspace access patterns and
-re-sizes the cache accordingly. Without tuning or parameter sweeps, our
-solution saves more memory than a hand-tuned cache without sacrificing
-performance.  More importantly, it works for a variety initial conditions
-without changing the policy itself.
+In this paper, we design cache management policies for ParSplice, driven by a
+detailed analysis of the key-value accesses over the course of a long running
+simulation across a variety of initial conditions. The default ParSplice
+implementation uses an unlimited sized cache, shown by the ``No Cache
+Management" line Figure~\ref{fig:cache-management}. This solution is
+unacceptable for HPC environments, where memory is precious and a common goal
+is to keep memory for such data structures below 3\%\footnote{Empirically, we
+find this threshold works well for most applications}.  While users can
+configure ParSplice to resize the cache when it reaches a certain threshold,
+this solution requires tuning and parameter sweeps; the dashed ``Cache (too
+small)" curve in Figure~\ref{fig:cache-management} shows how a poorly
+configured cache hurts performance.  Our final solution, shown by the
+``Dynamically Sized Cache" line in Figure~\ref{fig:cache-management}, detects
+keyspace access patterns and re-sizes the cache accordingly.  Without tuning or
+parameter sweeps, our solution saves more memory than a hand-tuned cache
+without sacrificing performance.  More importantly, it works for a variety
+initial conditions without changing the policy itself.
 
 % What is Mantle
 To design more flexible cache management policies, like our ``Dynamically

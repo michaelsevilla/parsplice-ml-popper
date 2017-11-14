@@ -134,15 +134,14 @@ counters have high overhead we only turn them on for the keyspace analysis.
 
 \subsubsection*{Experimental Setup} All experiments ran on Trinitite, a Cray
 XC40 with 32 Intel Haswell 2.3GHz cores per node.  Each node has 128GB of RAM
-and our goal is to limit the size of the cache to 3\% of
-RAM\footnote{Empirically, we find this threshold works well for most
-applications}. Note that this is an addition to the 30GB that ParSplice uses to
-manage other ranks on the same node.  A single Cray node produced trajectories
-that are \(5\times\) times longer than our 10 node CloudLab clusters and
-\(25\times\) longer than our 10 node cluster at UCSC. As a result, it reaches
-different job phases faster and gives us a more comprehensive view of the
-workload. The performance gains compared to the commodity clusters have more to
-do with memory/PCI bandwidth than network.
+and our goal is to limit the size of the cache to 3\% of RAM . Note that this
+is an addition to the 30GB that ParSplice uses to manage other ranks on the
+same node.  A single Cray node produced trajectories that are \(5\times\) times
+longer than our 10 node CloudLab clusters and \(25\times\) longer than our 10
+node cluster at UCSC. As a result, it reaches different job phases faster and
+gives us a more comprehensive view of the workload. The performance gains
+compared to the commodity clusters have more to do with memory/PCI bandwidth
+than network.
 
 The scalability experiment uses 1 splicer, 1 persistent database, 1 cache
 process, and up to 2 workers. We scale up to 1024 tasks, which spans 32 nodes
