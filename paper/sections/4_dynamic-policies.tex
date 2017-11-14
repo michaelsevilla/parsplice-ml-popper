@@ -19,10 +19,10 @@ implemented as the ``when" and ``how much" policies from the Mantle API; the
 ``where" callback does not make sense for a single node (segments are either in
 the cache or they are not). The evaluation metric is the accuracy and runtime
 of each strategy; the strategy should be accurate enough so as to sacrifice
-negligible performance and fast enough to run as often as we want to detect
-regimes. The goal of the following sections is not to find an optimal solution,
-as this can be done with parameter sweeps for thresholds; rather, we try to
-find techniques that work for a range of inputs and system setups.
+negligible performance and fast enough to run as often as we want to detect key
+access patterns. The goal of the following sections is not to find an optimal
+solution, as this can be done with parameter sweeps for thresholds; rather, we
+try to find techniques that work for a range of inputs and system setups.
 
 First we sized the cache according to our system specific knowledge. By
 ``system", we mean the hardware and software of the storage hierarchy. We look
@@ -219,7 +219,7 @@ we should use for different job permutations.
   \noindent\includegraphics[height=5cm,width=0.4\textwidth]{figures/keyspace-zoomed.png}\\
 
   \caption{Key activity for a 4 hour run shows groups of accesses to the same
-  subset of keys. Detecting these ``access regimes" leads to a more accurate cache
+  subset of keys. Detecting these access patterns leads to a more accurate cache
   management strategy.\label{fig:keyspace-zoomed}}
 
 \end{figure}
@@ -228,12 +228,12 @@ Feeding domain-specific knowledge about the ParSplice application into a policy
 leads to more a accurate cache management strategy.
 Figure~\ref{fig:keyspace-zoomed} shows which keys (\(y\) axis) are accessed by
 the ParSplice tasks over time (\(x\) axis). The groups of accesses to a subset
-of the keys, or ``access regimes", occur because molecules are stuck in deep
-trajectories. Recall that the in-memory database stores the molecules' EOM
-minima, which is the smallest effective energy that a molecule observes during
-its trajectory. So molecules stuck in deep trajectories explore the same minima
-until they can escape to a new set of states. This exploration of the same set
-of states is called a superbasin. 
+of keys, which we call an access ``fan" in subsequent sections, occurs because
+molecules are stuck in deep trajectories. Recall that the in-memory database
+stores the molecules' EOM minima, which is the smallest effective energy that a
+molecule observes during its trajectory. So molecules stuck in deep
+trajectories explore the same minima until they can escape to a new set of
+states. This exploration of the same set of states is called a superbasin. 
 
 Detecting these superbasins can lead to more effective cache management
 strategies because the height of the keyspace accesses is ``how much" of cache
@@ -258,31 +258,90 @@ hard to detect them:
 
 \end{itemize}
 
-Below we describe the policies we implemented and deployed using Mantle. 
+Below we describe the policies we implemented and deployed using Mantle.
 
 \subsection{Failed Strategies}
-These techniques proliferated more knobs that obfuscated the problem. 
+
+To detect the access patterns in Figure~\ref{fig:keyspace-zoomed}, we try a
+variety of techniques using Mantle. Unfortunately, we found that they all
+proliferated more parameters that need to be tuned. Furthermore, we find that
+many of the metrics do not signal a new fans, that our metrics are not accurate
+enough, and that even if we tune all parameters they still will not work for
+all initial conditions.  Below, we indicate which parameters we need to add for
+each technique and the value we find to work best, via tuning and parameter
+sweeps, for one set of initial conditions.
+
 \begin{itemize}
-  \item Statistics
-  \item Calculus
-  \item K-Means
-  \item DBScan
-  \item Anomaly Detection
+
+  \item Statistics: decay on each key counts down until 0 0-valued keys are
+evicted.  ``history-of-keyspace", set to 10 seconds, to evict keys.
+
+  \item Calculus: use derivative to strip away magnitudes; use large positive
+slopes followed large negative slope as signal for new fan. ``Zero-crossing"
+for distance between small/large spikes to avoid false positives, set to 40
+seconds; `window size", set to 200 seconds, for the size of the moving average 
+
+  \item K-Means Clustering fails because ``K" is not known {\it a-priori} and
+fans are different size. ``K", set to 4, for the number of clusters in the data
+using the sum of the distances to the centroid
+
+  \item DBScan: finds clusters using density as a metric. ``Eps", set to 20, for
+max distance between 2 samples in same neighborhood; ``Min", set to 5, for the
+number of samples per core
+
+  \item Anomaly Detection: size of the image is too big and bottom edges are
+not thick enough
+
 \end{itemize}
 
-\subsection{Regime Detection}
+\subsection{Dynamically Sized Cache: Access Pattern Detection}
 \label{sec:regime-detection}
 
-At each time step, we find the lowest ID and compare against the local minimum,
-which is the smallest ID we have seen thus far. If we move left to right, the
-local minimum never changes because the local minimum will start small. If we
-move from right to left, the local minimum changes at each access regime.  For
-points \(z\), \(y\), and \(x\), if the local minimum is the same we are in a
-regime. Processing \(y\), we set the local minimum to be \(min(y, m_l)\), where
-\(m_l\) is the local minimum of the previous time step of \(z\). The algorithm
-incorrectly detects a regime change if the local minimum of \(y\) is lower than
-local minimum of \(z\), since \(y\) may have points {\it within} \(z\); recall
-that we are trying to detect the whole fan, not just the bottom edge of each
-fan.
+Figure~\ref{src:dyn-cache} shows the algorithm we use to detect the key access
+patterns in Figure~\ref{fig:keyspace-zoomed}. At each time step, we find the
+lowest ID and compare against the local minimum, which is the smallest ID we
+have seen thus far (Line 7). We also maintain the top and bottom of each fan
+(Line 13) so we can tell the ``how much" policy the number of keys to evict
+(Line 19).  If we move left to right, the local minimum never changes because
+the local minimum will start small. If we move from right to left, the local
+minimum changes at each access regime.  For points \(z\), \(y\), and \(x\), if
+the local minimum is the same we are in a regime.  Processing \(y\), we set the
+local minimum to be \(min(y, m_l)\), where \(m_l\) is the local minimum of the
+previous time step of \(z\).  The algorithm incorrectly detects a regime change
+if the local minimum of \(y\) is lower than local minimum of \(z\), since \(y\)
+may have points {\it within} \(z\); recall that we are trying to detect the
+whole fan, not just the bottom edge of each fan. We exchange runtime, in the
+form of an O(n) algorithm, for simplicity. This approach avoids adding new
+thresholds for new fan detection, such as space between key accesses, space
+between key IDs, and window size of consecutive key accesses.
 
+\begin{figure}[h]
+\footnotesize
+\begin{minted}[xleftmargin=3em,linenos]{lua}
+d = timeseries()          -- data (d) provided by mantle
+ts, id = d:get(d:size())  -- functions provided by mantle
+fan  = {start=nil, finish=ts, top=0, bottom=id}
+fans = {}
+for i=d:size(),1,-1 do -- detect possible fans
+  ts, id = d:get(i)
+  if id < fan['bottom'] then
+    fan['start']  = ts
+    fans[#fans+1] = fan 
+    fan = {start=nil, finish=ts, top=0, bottom=id}
+  end 
 
+  if id > fan['top'] then fan['top'] = id end 
+end
+fan['start'] = 0 
+fans[#fans+1] = fan 
+
+if #fans < 2 then return false else
+  WRstate(fans[#fans-1]['top']-fans[1]['bottom'])
+  return true
+end
+\end{minted}
+\caption{The ``Dynamically Sized Cache" policy from
+Figure~\ref{fig:cache-management} iterates backwards over timestamp-keyID pairs
+and detects when key accesses moves on to a new subset of
+keys.\label{src:dyn-cache}}
+\end{figure}

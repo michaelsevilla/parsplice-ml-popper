@@ -1,4 +1,4 @@
-\section{General Data Management Policies}
+\section{Towards General Data Management Policies}
 \label{sec:scope}
 
 %\begin{itemize}
@@ -24,10 +24,10 @@ Figure~\ref{src:lru-dyn} trims the cache if the cache reaches a certain size
 {\it and} if it has already absorbed the initial burstiness of the workload.
 Much of this implementation was inspired by the file system metadata load
 balancing policy in Figure~\ref{src:lua-cephfs}, which was presented
-in~\cite{sevilla:sc15-mantle}. That policy migrates load if the metadata load
-is higher than the average load in the cluster {\it and} the current load has
-been overloaded for more than two iterations. The two policies have the
-following in common:
+in~\cite{sevilla:sc15-mantle}. That policy migrates file system metadata if the
+load is higher than the average load in the cluster {\it and} the current
+server has been overloaded for more than two iterations. The two policies have
+the following in common:
 
 \textbf{Condition for ``Overloaded"} (Fig.~\ref{src:lru-dyn}: Line 2;
 Fig.~\ref{src:lua-cephfs}: Line 2) - these lines detect whether the node is
@@ -82,18 +82,18 @@ end
 Mantle was designed for file system metadata load balancing across a cluster of
 dedicated metadata servers, where spreading requests across servers improves
 performance. But another technique to reduce request load is caching. If
-clients and servers maintain a consistent cache, the client can do operation
+clients and servers maintain a consistent cache, the client can do operations
 locally without contacting the metadata server.  The caches in CephFS have the
 same performance and utilization trade-off as ParSplice, where large caches
 improve performance at the expense of a higher memory footprint. High memory
 utilization is problematic when a single metadata server maintains consistent
-caches with many clients .  Using cache management policies from the previous
+caches with many clients.  Using cache management policies from the previous
 two sections has two benefits for load balancing: (1) increases the capacity of
 a single metadata server, and (2) helps identify which parts of the cache to
-keep local to a server. For example, applying the regime detection algorithm from
-Section~\S\ref{sec:regime-detection} to a similar file system access pattern
-has the potential to identify when to migrate keys and how many keys to
-migrate.
+keep local to a server. For example, applying the keyspace access pattern
+detection algorithm from Section~\S\ref{sec:regime-detection} to a similar file
+system access pattern has the potential to identify when to migrate keys and
+how many keys to migrate.
 
 % burstiness of creates then compile
 To explore this example in more detail, consider the trace of metadata requests
@@ -103,14 +103,14 @@ server when uncompressing (\texttt{untar}), compiling (\texttt{make}), and
 deleting (\texttt{rm}) the source code for the Linux kernel. If the system
 knows that the job phases would progress from many creates, to many lookups, to
 many deletes, then it could size its caches accordingly. For example, the file
-system could cache none of the metadatas from the \texttt{untar} phase and run
+system could cache none of the metadata from the \texttt{untar} phase and run
 regime detection during the \texttt{make} phase, resulting in the metadata
 server/clients only caching metadata that is repeatedly used. For the job in
 Figure~\ref{fig:compile-ops}, this would fill up the cache to only 20K inodes
 (the unit of metadata for file systems) instead of 60K, resulting in almost
-40MB (since an inode is about
+40MB of memory savings (since an inode is about
 1KB\footnote{http://docs.ceph.com/docs/master/dev/mds\_internals/data-structures/})
-of memory savings without sacrificing performance.
+without sacrificing performance.
 
 %- strategy: cache all inodes on create
 \begin{figure}[t]
@@ -126,15 +126,15 @@ without sacrificing performance.  \label{fig:compile-ops}}
 Ceph has many other data management techniques that would benefit from the
 caching policies developed in Sections~\S\ref{sec:arch-specific}
 and~\ref{sec:dom-specific}. Administrators can use the policies in ParSplice to
-automatically size and manage cache tiers
-\footnote{http://docs.ceph.com/docs/master/rados/operations/cache-tiering/},
+automatically size and manage cache
+tiers\footnote{http://docs.ceph.com/docs/master/rados/operations/cache-tiering/},
 caching on object storage devices, or in the distributed block
 devices\footnote{http://docs.ceph.com/docs/master/rbd/rbd-config-ref/}.
 Integration with Mantle would be straightforward as it is merged into Ceph's
 mainline\footnote{http://docs.ceph.com/docs/master/cephfs/mantle/} and the
 three caching subsystems mentioned above already maintain keyspace access
 traces. We hypothesize that since this is all software defined caching,
-something more clever than LRU would improve cache utilization and without
+something more clever than LRU would improve cache utilization without
 sacrificing too much performance.
 
 \subsection{Other Use Cases}
