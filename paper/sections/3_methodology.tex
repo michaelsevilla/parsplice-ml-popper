@@ -11,7 +11,9 @@ data management policies can be expressed with a simple API consisting of
 ``when", ``where", and ``how much". ``when" controls how aggressive or
 conservative the decisions are; ``where" lets the policy control how
 distributed or concentrated the data should be; and ``how much" controls the
-amount of data that should be sent.
+amount of data that should be sent. There is also a ``load" policy that lets
+administrators specify how to collapse many metrics into a single load metric
+({\it e.g.}, \(2\times\texttt{cpu} + 3\times\texttt{memory usage}\)).
 
 The succinctness of the API lets users inject multiple, dynamic policies. In
 this work we focus on a single node, so the ``where" policy is not used. When

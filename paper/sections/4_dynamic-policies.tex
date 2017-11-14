@@ -37,48 +37,58 @@ the data from the persistent database.  We evict keys (if necessary) at every
 operation instead of when segments complete because the cache fills up too
 quickly otherwise.
 
-% results: cache size trade-offs
-\begin{figure}[t]
-  \noindent\includegraphics[width=0.5\textwidth]{figures/methodology-tradeoff.png}\\
-  \caption{The performance and resource utilization trade-off for different
-  cache sizes. ``Baseline" is
-  ParSplice unmodified and the ``Policy: Constrain Cache Size" graph limits the
-  size of the cache to save memory.  \label{fig:methodology-tradeoff}}
-\end{figure}
-
 The results for different cache sizes for a growth rate of \(\Delta_1\) over a
 2.5 hour run across 256 workers is shown in
 Figure~\ref{fig:methodology-tradeoff}.  ``Baseline" is the performance of
 unmodified ParSplice  measured in trajectory duration (\(y\) axis) and
 utilization is measured with memory footprint of just the cache (\(y2\) axis).
 The other graph shares the \(y\) axis and shows the trade-off of using a basic
-LRU-style cache for different cache sizes, implemented using the ``when" and
-``how much" policies in Figure~\ref{src:lru}.  The error bars are the standard
+LRU-style cache for different cache sizes, implemented using a ``when" policy
+of \texttt{server[whoami]['cachesize']>n} and a ``how much" policy of
+\texttt{servers[whoami]['cachesize']-n}. The error bars are the standard
 deviation of 3 runs. 
+%\begin{figure}[h] \footnotesize \begin{minted}{lua}
+%server[whoami]['cachesize'] > n \end{minted} \end{figure}
+
+%and ``how much":
+%\begin{figure}[h]
+%\footnotesize
+%\begin{minted}{lua}
+%servers[whoami]['cachesize'] - n
+%\end{minted}
+%\end{figure}
+
 
 \begin{figure}[t]
-\footnotesize
-\centering
-\begin{minted}[xleftmargin=3em,linenos]{lua}
-function when()
-  if server[whoami]['cachesize'] > n then
-    return true
-  end
-  return false
-end
-
-function howmuch()
-  if servers[whoami]['cachesize'] > n
-    return servers[whoami]['cachesize'] - n
-  end
-  return 0
-end
-\end{minted}
-\caption{Policy that implements a basic LRU cache. The performance and memory
-utilization for different values of \(n\) are graphed in
-Figure~\ref{fig:methodology-tradeoff}.
-\label{src:lru}}
+\noindent\includegraphics[width=0.5\textwidth]{figures/methodology-tradeoff.png}\\
+\caption{The performance and resource utilization trade-off for different cache
+sizes. ``Baseline" is ParSplice unmodified and the ``Policy: Constrain Cache
+Size" graph limits the size of the cache to save memory.
+\label{fig:methodology-tradeoff}}
 \end{figure}
+%
+%\footnotesize
+%\centering
+%\begin{minted}[xleftmargin=3em,linenos]{lua}
+%function when()
+%  if server[whoami]['cachesize'] > n then
+%    return true
+%  end
+%  return false
+%end
+%
+%function howmuch()
+%  if servers[whoami]['cachesize'] > n
+%    return servers[whoami]['cachesize'] - n
+%  end
+%  return 0
+%end
+%\end{minted}
+%\caption{Policy that implements a basic LRU cache. The performance and memory
+%utilization for different values of \(n\) are graphed in
+%Figure~\ref{fig:methodology-tradeoff}.
+%\label{src:lru}}
+%\end{figure}
 
 % why is the performance lower for smaller caches?
 Although the keyspace grows to 150K, a 100K key cache achieves 99\% of the
@@ -104,16 +114,16 @@ should suffice after the initial read flash crowd passes because
 the keyspace is far less active. This suggests a two-part cache management
 policy.
 
-% Why is this a good idea
-Although ParSplice does not use a distributed file system, its workload is very
-similar because the minima key-value store responds to small and frequent
-requests, which results in hot spots and flash crowds.  Modern distributed file
-systems have found efficient ways to measure, migrate, and partition metadata
-load and have shown large performance gains and
-better scalability~\cite{zheng:pdsw2014-batchfs, zheng:pdsw2015-deltafs,
-grider:pdsw2015-marfs, ren:sc2014-indexfs, patil:fast2011-giga+,
-brandt:msst2003-lh}.  Previous work quantified the speedups achieved with
-Mantle and formalized balancers that were good for file systems.
+%% Why is this a good idea
+%Although ParSplice does not use a distributed file system, its workload is very
+%similar because the minima key-value store responds to small and frequent
+%requests, which results in hot spots and flash crowds.  Modern distributed file
+%systems have found efficient ways to measure, migrate, and partition metadata
+%load and have shown large performance gains and
+%better scalability~\cite{zheng:pdsw2014-batchfs, zheng:pdsw2015-deltafs,
+%grider:pdsw2015-marfs, ren:sc2014-indexfs, patil:fast2011-giga+,
+%brandt:msst2003-lh}.  Previous work quantified the speedups achieved with
+%Mantle and formalized balancers that were good for file systems.
 
 \begin{figure}[t]
   \noindent\includegraphics[width=0.5\textwidth]{figures/methodology-tradeoff-dynamic.png}\\
@@ -133,12 +143,10 @@ two policies:
 \end{itemize}
 
 The actual policy is shown and described in more detail in the next section in
-Figure~\ref{src:lru-dyn}, but the only difference between the code snippet in
-Figure~\ref{src:lru} is the addition of lines 2-7.  We trigger the policy
-switch at 100K keys to absorb the flash crowd at the beginning of the run. Once
-triggered, keys are evicted to bring the size of the cache down to the
-threshold.  In the bar chart, the cache sizes for the \(n\) key limit policy
-are along the \(x\) axis.
+Figure~\ref{src:lru-dyn}.  We trigger the policy switch at 100K keys to absorb
+the flash crowd at the beginning of the run. Once triggered, keys are evicted
+to bring the size of the cache down to the threshold.  In the bar chart, the
+cache sizes for the \(n\) key limit policy are along the \(x\) axis.
 
 % results: same level of performance can be achieved 
 The dynamic policies show better performance than the single \(n\) key
