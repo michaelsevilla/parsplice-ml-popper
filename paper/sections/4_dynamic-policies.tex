@@ -132,38 +132,13 @@ two policies:
   \item \(n\) key limit policy: cache constrained to \(n\) keys
 \end{itemize}
 
-The actual policy is shown in Figure~\ref{src:lru-dyn} where the only
-difference between the code snippet in Figure~\ref{src:lru} is the addition of
-lines 2-7. Note that policy also uses the \texttt{RDState} and \texttt{WRState}
-functions described in Section~\S\ref{sec:extracting}.
-
-\begin{figure}[t]
-\footnotesize
-\centering
-\begin{minted}[xleftmargin=3em,linenos]{lua}
-function when()
-  if server[whoami]['cachesize'] > n then
-    if server[whoami]['cachesize'] > 100K then
-      WRstate(1)
-    end
-    if RDstate() == 1 then
-      return true
-    end
-  end
-  return false
-end
-\end{minted}
-\caption{A more complicated LRU-based cache policy that has two parts. After
-absorbing the initial burstiness of the workload, the policy switches to a more
-constrained cache to limit memory usage. The performance/utilization for
-different values of \texttt{n} is shown in
-Figure~\ref{fig:methodology-tradeoff-dynamic}. \label{src:lru-dyn}}
-\end{figure}
-
-We trigger the policy switch at 100K keys to absorb the flash crowd at the
-beginning of the run. Once triggered, keys are evicted to bring the size of the
-cache down to the threshold.  In the bar chart, the cache sizes for the \(n\)
-key limit policy are along the \(x\) axis.
+The actual policy is shown and described in more detail in the next section in
+Figure~\ref{src:lru-dyn}, but the only difference between the code snippet in
+Figure~\ref{src:lru} is the addition of lines 2-7.  We trigger the policy
+switch at 100K keys to absorb the flash crowd at the beginning of the run. Once
+triggered, keys are evicted to bring the size of the cache down to the
+threshold.  In the bar chart, the cache sizes for the \(n\) key limit policy
+are along the \(x\) axis.
 
 % results: same level of performance can be achieved 
 The dynamic policies show better performance than the single \(n\) key

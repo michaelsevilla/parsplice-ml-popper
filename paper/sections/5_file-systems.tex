@@ -1,6 +1,58 @@
 \section{Towards General Data Management Policies}
 \label{sec:scope}
 
+\begin{figure*}[t!]
+    \centering
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \footnotesize
+        \centering
+        \begin{minted}[xleftmargin=3em,linenos]{lua}
+function when()
+  if server[whoami]['cachesize'] > n then
+    if server[whoami]['cachesize'] > 100K then
+      WRstate(1)
+    end
+    if RDstate() == 1 then
+      return true
+    end
+  end
+  return false
+end
+        \end{minted}
+        \caption{ParSplice cache management policy that absorbs the burstiness of the
+        workload before switching to a constrained cache.  The
+        performance/utilization for different  \texttt{n} is in
+        Figure~\ref{fig:methodology-tradeoff-dynamic}. \label{src:lru-dyn}}
+    \end{subfigure}%
+    ~ 
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \footnotesize
+        \begin{minted}[xleftmargin=3em,linenos]{lua}
+local function when()
+  if servers[whoami]["load"] > target then
+    overloaded = RDstate() + 1
+    WRstate(overloaded)
+    if overloaded > 2 then
+      return true
+    end
+  end
+  else then WRstate(0) end
+  return false
+end
+        \end{minted}
+	\caption{CephFS file system metadata load balancer, designed in 2004
+        in~\cite{weil:sc2004-dyn-metadata}, reimplemented in Lua
+        in~\cite{sevilla:sc15-mantle}. This policy has many similarities to the
+        ParSplice cache management policy.\label{src:lua-cephfs}}
+    \end{subfigure}
+    \caption{ParSplice's cache management policy has the same components as
+    CephFS's load balancing policy.}
+\end{figure*}
+
+
+
 %\begin{itemize}
 %  \item Lustre Trace
 %  \item LinkedIn Trace
@@ -38,7 +90,7 @@ cache reaches a certain size while the CephFS policy compares the load to other
 nodes in the system.
 
 \textbf{State Persisted Across Decisions} (Fig.~\ref{src:lru-dyn}: Lines 4,6;
-Fig~\ref{src:lua-cephfs}: Lines 3,4,10) - these lines use Mantle to write/read state
+Fig~\ref{src:lua-cephfs}: Lines 3,4,9) - these lines use Mantle to write/read state
 from previous decisions.  For ParSplice, we save a boolean that indicates
 whether we have absorbed the workload's initial burstiness. For CephFS, we save
 the number of consecutive instances that the server has been overloaded. We
@@ -51,26 +103,6 @@ data management state.  ParSplice trims its cache once it eclipses the
 ``absorb" threshold while CephFS allows balancing when overloaded for more than
 two iterations. The persistent state is essential for both of these
 policy-switching conditions.
-
-\begin{figure}[t]
-\footnotesize
-\begin{minted}[xleftmargin=3em,linenos]{lua}
-local function when()
-  if servers[whoami]["load"] > target then
-    overloaded = RDstate() + 1
-    WRstate(overloaded)
-    if overloaded > 2 then
-      return true
-    end
-  end
-  else then
-    WRstate(0)
-  end
-  return false
-end
-\end{minted}
-\caption{CephFS file system metadata load balancer.\label{src:lua-cephfs}}
-\end{figure}
 
 \subsection{Using ParSplice Policies for File Systems}
 

@@ -43,30 +43,30 @@ adjust the cache accordingly.
 \label{fig:cache-management}}
 \end{figure}
 
-In this paper, we design cache management policies for ParSplice, driven by a
+The biggest challenge for ParSplice is properly sizing the caches in the
+storage hierarchy.  The memory usage for a ParSplice cache that stores molecule
+coordinates is shown in Figure~\ref{fig:cache-management}. The solid lines are
+the existing cache management policies, exposed as configurations in ParSplice.
+The default ParSplice configuration uses an unlimited sized cache, shown by the
+``No Cache Management" line, but using this much memory for one cache is
+unacceptable for HPC environments, where memory is precious and a common goal
+is to keep memory for such data structures below 3\%\footnote{Empirically, we
+find this threshold works well for most applications}.  While users can
+configure ParSplice to resize the cache when it reaches a certain threshold,
+this solution requires tuning and parameter sweeps to find the optimal cache
+size that sacrifices negligible performance.  Furthermore, this threshold
+changes with different initial configurations and clusters, as shown by our
+keyspace analysis in Section~\S\ref{sec:parsplice-keyspace-analysis}.  The
+``Cache (too small)" curve in Figure~\ref{fig:cache-management} shows how a
+poorly configured cache can save memory but at the expense of performance.  Our
+dynamically sized cache, shown by the dashed line in
+Figure~\ref{fig:cache-management}, detects keyspace access patterns and
+re-sizes the cache accordingly. The design of this policy is driven by a
 detailed analysis of the key-value accesses over the course of a long running
-simulation across a variety of initial conditions.
-
-The memory usage for a ParSplice cache that stores molecule coordinates is
-shown in Figure~\ref{fig:cache-management}. The solid lines are the existing
-cache management policies, exposed as configurations in ParSplice.  The default
-ParSplice configuration uses an unlimited sized cache, shown by the ``No Cache
-Management" line, but using this much memory for one cache is unacceptable for
-HPC environments, where memory is precious and a common goal is to keep memory
-for such data structures below 3\%\footnote{Empirically, we find this threshold
-works well for most applications}.  While users can configure ParSplice to
-resize the cache when it reaches a certain threshold, this solution requires
-tuning and parameter sweeps to find the optimal cache size that sacrifices
-negligible performance.  Furthermore, this threshold changes with different
-initial configurations and clusters, as shown by our keyspace analysis in
-Section~\S\ref{sec:parsplice-keyspace-analysis}.  The ``Cache (too small)"
-curve in Figure~\ref{fig:cache-management} shows how a poorly configured cache
-can save memory but at the expense of performance.  Our dynamically sized
-cache, shown by the dashed line in Figure~\ref{fig:cache-management} detects
-keyspace access patterns and re-sizes the cache accordingly.  Without tuning or
-parameter sweeps, our solution saves more memory than a hand-tuned cache
-without sacrificing performance.  More importantly, it works for a variety
-initial conditions without changing the policy itself.
+simulation across a variety of initial conditions.  Without tuning or parameter
+sweeps, our solution saves more memory than a hand-tuned cache without
+sacrificing performance.  More importantly, it works for a variety initial
+conditions without changing the policy itself.
 
 % What is Mantle
 To design more flexible cache management policies, like our dynamically sized
@@ -79,14 +79,14 @@ programmable file system metadata load balancer, but we realize now that the
 collection of abstractions designed for file systems was a control plane that
 improved metadata access. So in this paper we refer to Mantle as a policy
 engine that injects policies written in our data management language directly
-into a running service and show how this approach is useful for reasoning about
-and designing different cache management strategies in ParSplice.  By service,
-we mean a system that manages data and responds to requests, such as a file
-system or key-value store.  Developers write policies for ``when" they want
-data moved and ``how much" of the data to move, then the framework executes
-these policies whenever a decision needs to be made.  These abstractions help
-developers unfamiliar with the domain quickly reason about, develop, and deploy
-new policies that control temporal and spatial locality. We show that Mantle:
+into a running service, such as a file system or key-value store, and show how
+this approach is useful for reasoning about and designing different cache
+management strategies in ParSplice.  Developers write policies for ``when" they
+want data moved and ``how much" of the data to move, then the framework
+executes these policies whenever a decision needs to be made.  These
+abstractions help developers unfamiliar with the domain quickly deploy new
+policies {\it or} well-understood techniques from other domains.  We show that
+Mantle:
 
 \begin{itemize}
 
@@ -98,7 +98,7 @@ new policies that control temporal and spatial locality. We show that Mantle:
 
   \item can be used to quickly deploy a variety of cache management strategies,
   ranging from basic algorithms and heuristics to statistical models and machine
-  learning.
+  learning. 
 
   \item has useful primitives that, while designed for file system metadata
   load balancing, turn out to also be effective for cache management. This
