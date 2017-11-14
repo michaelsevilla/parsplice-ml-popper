@@ -184,7 +184,32 @@ Trinitite nodes at 20GB for the cache.  This memory utilization easily eclipses
 the 3\% threshold we set earlier, even without factoring in the memory usage
 from other workers.
 
-\subsubsection*{An active but small keyspace} The bars in
+\begin{figure}[t]
+  \noindent\includegraphics[width=0.5\textwidth]{figures/motivation-regimes.png}\\
+  \caption{The keyspace activity for ParSplice using two different growth
+rates.  The line shows the rate that EOM minima values are retrieved from the
+key-value store (\(y1\) axis) and the points along the bottom show the number
+of keys accessed in a 1 second sliding window (\(y2\) axis).
+\label{fig:motivation-regimes}}
+\end{figure}
+
+\subsubsection*{An active but small keyspace}
+Figure~\ref{fig:motivation-regimes} shows how ParSplice tasks read key-value
+pairs from the worker's cache for two different initial conditions of
+\(\Delta\), which is the rate that new atoms enter the simulation.  The line is
+the read request rate (\(y1\) axis) and the dots along the bottom are the
+number of unique keys accessed (\(y2\) axis).  This figure demonstrates that
+small changes to \(\Delta\) can have a strong effect on the timing and
+frequency with which new EOM minima are discovered and referenced.  The
+ParSplice caches on each node are trimmed when memory pressure reaches a
+threshold but the number of unique keys accessed in
+Figure~\ref{fig:motivation-regimes} suggests that a small cache of EOM minima
+should be sufficient. 
+
+
+
+
+The bars in
 Figure~\ref{fig:methodology-keyspace} show \(50-100\times\) as many reads
 (\texttt{get()}) as writes (\texttt{put()}).  Worker tasks read the same key
 for extended periods because the trajectory can remain stuck in so-called
