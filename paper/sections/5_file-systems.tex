@@ -115,11 +115,11 @@ without sacrificing performance.
 %- strategy: cache all inodes on create
 \begin{figure}[t]
 \noindent\includegraphics[width=0.5\textwidth]{figures/compile-ops.png}\\
-\caption{The file system metadata requests for a compile job shows distinct
-workload phases, characterized by a dominant request type ({\it e.g.}, creates
-for ``untar", lookups for ``make", etc.). Using a ParSplice cache management
-policy for a workload like this in file systems could reduce memory pressure
-without sacrificing performance.  \label{fig:compile-ops}}
+\caption{File system metadata requests for a compile job show workload phases
+characterized by a dominant request type ({\it e.g.}, creates for ``untar").
+Using ParSplice cache management policies for these types of workloads would
+reduce memory pressure without sacrificing performance.
+\label{fig:compile-ops}}
 \end{figure}
 
 % other use cases caches/tiers 
