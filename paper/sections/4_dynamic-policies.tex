@@ -281,22 +281,30 @@ not thick enough
 \label{sec:regime-detection}
 
 Figure~\ref{src:dyn-cache} shows the algorithm we use to detect the key access
-patterns in Figure~\ref{fig:keyspace-zoomed}. At each time step, we find the
-lowest ID and compare against the local minimum, which is the smallest ID we
-have seen thus far (Line 7). We also maintain the top and bottom of each fan
-(Line 13) so we can tell the ``how much" policy the number of keys to evict
-(Line 19).  If we move left to right, the local minimum never changes because
-the local minimum will start small. If we move from right to left, the local
-minimum changes at each access regime.  For points \(z\), \(y\), and \(x\), if
-the local minimum is the same we are in a regime.  Processing \(y\), we set the
-local minimum to be \(min(y, m_l)\), where \(m_l\) is the local minimum of the
-previous time step of \(z\).  The algorithm incorrectly detects a regime change
-if the local minimum of \(y\) is lower than local minimum of \(z\), since \(y\)
-may have points {\it within} \(z\); recall that we are trying to detect the
-whole fan, not just the bottom edge of each fan. We exchange runtime, in the
-form of an O(n) algorithm, for simplicity. This approach avoids adding new
-thresholds for new fan detection, such as space between key accesses, space
-between key IDs, and window size of consecutive key accesses.
+patterns. Iterating backwards through the keyspace trace, at each time step we
+find the lowest key ID and compare against the lowest key ID we have seen so
+far (Line 7). We also maintain the top and bottom of each fan (Line 13) so we
+can tell the ``how much" policy the number of keys to evict (Line 19).  The
+algorithm iterates backwards over the keyspace trace because a change in the
+minimum value signals a new fan. No signal exists iterating left to right, as
+the maximum value always increases and the minimum values at the bottom of each
+fan are sparse.  For example, the maximum distance between values along the
+bottom edge of the zoomed fan in Figure~\ref{fig:keyspace-zoomed} is 125
+seconds, while the maximum distance between minimum values for the fan before
+is 0 seconds. As a result of this sparseness, iterating left to right requires
+a ``window size" parameter to determine when we think a minimum value will not
+show up again.  We exchange runtime, in the form of an O(\(n\)) algorithm where
+\(n\) is the number events, for simplicity because this approach avoids adding
+new thresholds for fan detection ({\it e.g.}, space between key accesses, space
+between key IDs, and window size of consecutive key accesses).
+
+%For points \(z\), \(y\), and \(x\), if the
+%local minimum is the same we are in a regime.  Processing \(y\), we set the
+%local minimum to be \(min(y, m_l)\), where \(m_l\) is the local minimum of the
+%previous time step of \(z\).  The algorithm incorrectly detects a regime change
+%if the local minimum of \(y\) is lower than local minimum of \(z\), since \(y\)
+%may have points {\it within} \(z\); recall that we are trying to detect the
+%whole fan, not just the bottom edge of each fan. 
 
 \begin{figure}[h]
 \footnotesize
