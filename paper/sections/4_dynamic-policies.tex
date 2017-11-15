@@ -199,8 +199,8 @@ trajectories explore the same minima until they can escape to a new set of
 states. This exploration of the same set of states is called a superbasin. 
 
 Detecting these superbasins can lead to more effective cache management
-strategies because the height of the keyspace accesses is ``how much" of cache
-to evict and the width of the keyspace accesses is ``when" to evict values from
+strategies because the height of the groups of key accesses is ``how much" of cache
+to evict and the width of the groups of key accesses is ``when" to evict values from
 the cache.  The zoomed portion of Figure~\ref{fig:keyspace-zoomed} shows how a
 single superbasin affects the key accesses. Moving along the \(x\) axis shows
 that the number of unique keys accessed over time grows while moving along the
@@ -237,7 +237,7 @@ sweeps, for one set of initial conditions.
 \begin{itemize}
 
   \item Statistics: decay on each key counts down until 0 0-valued keys are
-evicted.  ``history-of-keyspace", set to 10 seconds, to evict keys.
+evicted.  ``history-of-key-accesses", set to 10 seconds, to evict keys.
 
   \item Calculus: use derivative to strip away magnitudes; use large positive
 slopes followed large negative slope as signal for new fan. ``Zero-crossing"
@@ -261,11 +261,11 @@ not thick enough
 \label{sec:regime-detection}
 
 Figure~\ref{src:dyn-cache} shows the algorithm we use to detect the key access
-patterns. Iterating backwards through the keyspace trace, at each time step we
+patterns. Iterating backwards through the key access trace, at each time step we
 find the lowest key ID and compare against the lowest key ID we have seen so
 far (Line 7). We also maintain the top and bottom of each fan (Line 13) so we
 can tell the ``how much" policy the number of keys to evict (Line 19).  The
-algorithm iterates backwards over the keyspace trace because a change in the
+algorithm iterates backwards over the key access trace because a change in the
 minimum value signals a new fan. No signal exists iterating left to right, as
 the maximum value always increases and the minimum values at the bottom of each
 fan are sparse.  For example, the maximum distance between values along the

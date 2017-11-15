@@ -122,7 +122,7 @@ utilization is problematic when a single metadata server maintains consistent
 caches with many clients.  Using cache management policies from the previous
 two sections has two benefits for load balancing: (1) increases the capacity of
 a single metadata server, and (2) helps identify which parts of the cache to
-keep local to a server. For example, applying the keyspace access pattern
+keep local to a server. For example, applying the key access pattern
 detection algorithm from Section~\S\ref{sec:regime-detection} to a similar file
 system access pattern has the potential to identify when to migrate keys and
 how many keys to migrate.
@@ -164,7 +164,7 @@ caching on object storage devices, or in the distributed block
 devices\footnote{http://docs.ceph.com/docs/master/rbd/rbd-config-ref/}.
 Integration with Mantle would be straightforward as it is merged into Ceph's
 mainline\footnote{http://docs.ceph.com/docs/master/cephfs/mantle/} and the
-three caching subsystems mentioned above already maintain keyspace access
+three caching subsystems mentioned above already maintain key access
 traces. We hypothesize that since this is all software defined caching,
 something more clever than LRU would improve cache utilization without
 sacrificing too much performance.
