@@ -26,16 +26,16 @@ procedure calls and drastically improves the performance of create-heavy
 workloads common in HPC~\cite{ren:sc2014-indexfs, patil:fast2011-giga+}. But
 these techniques are specific to the domain and application's behavior and a
 new use case may prove to be poor a match for the selected caching
-policy~\cite{sevilla:sc15-mantle, weil:sc2004-dyn-metadata,
-weil:osdi2006-ceph}. In this paper, we evaluate a variety of caching policies
-using a general framework that supports policy switching and arrive at a
-customized policy that works well for our target application and storage
-system.  Trying general policies and iterating to a very customized solution
-confirms that our prototype can adapt to different types of workloads; but more
-importantly, this is the second system and domain that we have successfully used
-this policy language and engine in. This breadth helps us reason about more
-general data management policies by giving us a framework to compare and
-contrast policies from other domains and services.
+policy~\cite{xiao:socc15-shardfs,brandt:msst2003-lh,sevilla:sc15-mantle,
+weil:sc2004-dyn-metadata, weil:osdi2006-ceph}. In this paper, we evaluate a
+variety of caching policies using a general framework that supports policy
+switching and arrive at a customized policy that works well for our target
+application and storage system.  Trying general policies and iterating to a
+very customized solution confirms that our prototype can adapt to different
+types of workloads; but more importantly, this is the second system and domain
+that we have successfully used this policy language and engine in. This breadth
+helps us reason about more general data management policies by giving us a
+framework to compare and contrast policies from other domains and services.
 
 Our target application is ParSplice~\cite{perez:jctc20150parsplice}, a
 molecular dynamics simulation that uses a hierarchy of caches and a single
