@@ -61,46 +61,36 @@ deviation of 3 runs.
 
 \begin{figure}[t]
 \noindent\includegraphics[width=0.5\textwidth]{figures/methodology-tradeoff.png}\\
+
 \caption{The performance and resource utilization trade-off for different cache
-sizes. ``Baseline" is ParSplice unmodified and the ``Policy: Constrain Cache
-Size" graph limits the size of the cache to save memory.
-\label{fig:methodology-tradeoff}}
+management policies. ``None" is ParSplice unmodified, ``Fixed Sized Cache"
+limits the size of the cache by evicting the least recently used items, and
+``Multi-Policy Cache" switches to a fixed sized cache after absorbing the
+initial burstiness of the workload.  The size of the fixed sized cache for each
+experiment is on the \(x\) axis.  \label{fig:methodology-tradeoff}}
 \end{figure}
 %
-%\footnotesize
-%\centering
-%\begin{minted}[xleftmargin=3em,linenos]{lua}
-%function when()
-%  if server[whoami]['cachesize'] > n then
-%    return true
-%  end
-%  return false
+%\footnotesize \centering \begin{minted}[xleftmargin=3em,linenos]{lua} function
+%when() if server[whoami]['cachesize'] > n then return true end return false
 %end
 %
-%function howmuch()
-%  if servers[whoami]['cachesize'] > n
-%    return servers[whoami]['cachesize'] - n
-%  end
-%  return 0
-%end
-%\end{minted}
-%\caption{Policy that implements a basic LRU cache. The performance and memory
-%utilization for different values of \(n\) are graphed in
-%Figure~\ref{fig:methodology-tradeoff}.
-%\label{src:lru}}
-%\end{figure}
+%function howmuch() if servers[whoami]['cachesize'] > n return
+%servers[whoami]['cachesize'] - n end return 0 end \end{minted} \caption{Policy
+%that implements a basic LRU cache. The performance and memory utilization for
+%different values of \(n\) are graphed in
+%Figure~\ref{fig:methodology-tradeoff}.  \label{src:lru}} \end{figure}
 
 % why is the performance lower for smaller caches?
 Although the keyspace grows to 150K, a 100K key cache achieves 99\% of the
 performance. Decreasing the cache degrades performance and predictability.
 Despite the memory savings, our results suggest that dynamic cache management
-policies could save even more memory.  Figure~\ref{fig:methodology-tradeoff}
-show that a 100K key cache is sufficient as a static policy but the top graph
-in Figure~\ref{fig:motivation-regimes} indicates that the cache size could be
-much smaller. That graph shows that the beginning of the run is characterized
-by many reads to a small set of keys and the end sees much lower reads per
-second to a larger keyspace. Specifically, it shows only about 100 keys as
-active in the latter half of the run.
+policies could save even more memory.  The middle plot in
+Figure~\ref{fig:methodology-tradeoff} show that a 100K key cache is sufficient
+as a static policy but the top graph in Figure~\ref{fig:motivation-regimes}
+indicates that the cache size could be much smaller. That graph shows that the
+beginning of the run is characterized by many reads to a small set of keys and
+the end sees much lower reads per second to a larger keyspace. Specifically, it
+shows only about 100 keys as active in the latter half of the run.
 
 After analyzing traces, we see that the 100 key cache is insufficient because
 the persistent database cannot service the read-write traffic.  According to
@@ -125,15 +115,7 @@ policy.
 %brandt:msst2003-lh}.  Previous work quantified the speedups achieved with
 %Mantle and formalized balancers that were good for file systems.
 
-\begin{figure}[t]
-  \noindent\includegraphics[width=0.5\textwidth]{figures/methodology-tradeoff-dynamic.png}\\
-  \caption{The performance and resource utilization trade-off of using a
-  dynamic cache management policy that switches to a constrained cache policy after absorbing
-  the initial burstiness of the workload. The sizes of these smaller caches are
-  on the \(x\) axis.  \label{fig:methodology-tradeoff-dynamic}}
-\end{figure}
-
-Figure~\ref{fig:methodology-tradeoff-dynamic} shows the results of using Mantle
+The plot on the right side of Figure~\ref{fig:methodology-tradeoff} shows the results of using Mantle
 to program a dynamic cache management policy into ParSplice that switches between
 two policies:
 
@@ -149,9 +131,9 @@ to bring the size of the cache down to the threshold.  In the bar chart, the
 cache sizes for the \(n\) key limit policy are along the \(x\) axis.
 
 % results: same level of performance can be achieved 
-The dynamic policies show better performance than the single \(n\) key
+The multi-part policies show better performance than the single \(n\) key
 policies. The performance and memory utilization for a 100K key cache size is
-the same as the 100K bar in Figure~\ref{fig:methodology-tradeoff-dynamic} but
+the same as the 100K bar in the ``Multi-Part Policy" graph in  Figure~\ref{fig:methodology-tradeoff} but
 the rest reduce the size of the keyspace after the read flash crowd.  We see
 the worst performance when the engine switches to the 10 key limit policy,
 which achieves 94\% of the performance while only using 40KB of memory. 
@@ -159,17 +141,15 @@ which achieves 94\% of the performance while only using 40KB of memory.
 % caveats: it is calculating 90% of the trajectory, memory value reported is final
 \subsubsection*{Caveats}
 
-The results in Figure~\ref{fig:methodology-tradeoff-dynamic} are slightly
-deceiving for three reason: (1) segments take longer to generate later in the
-run, (2) the memory footprint is the value at the end of 2.5 hours, and (3)
-this policy only works well for the 2.5 hour run.  For (1), the curving down of
-the simulation vs. wall-clock time is shown in
-Figure~\ref{fig:methodology-trajectory}; as the nanoparticle grows it takes
-longer to generate segments so by the time we reach 2 hours, over 90\% of the
-trajectory is already generated.  For (2), the memory footprint is around 0.4GB
-until we reach 100K key switch threshold. In
-Figures~\ref{fig:methodology-tradeoff}
-and~\ref{fig:methodology-tradeoff-dynamic} we plot the final value. For (3),
+The results in Figure~\ref{fig:methodology-tradeoff} are slightly deceiving for
+three reason: (1) segments take longer to generate later in the run, (2) the
+memory footprint is the value at the end of 2.5 hours, and (3) this policy only
+works well for the 2.5 hour run.  For (1), the curving down of the simulation
+vs. wall-clock time is shown in Figure~\ref{fig:methodology-trajectory}; as the
+nanoparticle grows it takes longer to generate segments so by the time we reach
+2 hours, over 90\% of the trajectory is already generated.  For (2), the memory
+footprint is around 0.4GB until we reach 100K key switch threshold. In
+Figures~\ref{fig:methodology-tradeoff} we plot the final value. For (3),
 Figure~\ref{fig:methodology-trajectory} shows that the cache fills up with 100K
 keys at time 7200 seconds and its size is reduced to the size listed in the
 legend.  The curves stay close to ``Unlimited" for up to an hour after the
@@ -181,8 +161,8 @@ different dynamic cache management policy.
 \begin{figure}[t]
   \noindent\includegraphics[height=5cm,width=0.4\textwidth]{figures/methodology-trajectory.png}\\
   \caption{The rate that the trajectory is computed decays over time (which is
-  expected) but this skews the performance improvements in
-  Figure~\ref{fig:methodology-tradeoff-dynamic}. Our dynamic policy works for 2.5
+  expected) but this skews the performance improvements in the ``Multi-Part Policy" graph in 
+  Figure~\ref{fig:methodology-tradeoff}. Our dynamic policy works for 2.5
   hour jobs but not for 4 hour jobs.  \label{fig:methodology-trajectory}}
 \end{figure}
 

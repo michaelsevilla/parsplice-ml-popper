@@ -18,20 +18,38 @@ hand-tuned cache.
 
 \section{Introduction}
 
-The fine-grained data annotation capabilities provided by key-value storage is
-a natural match for many types of scientific simulation. Simulations relying on
-a mesh-based decomposition of a physical region may result in millions or
-billions of mesh cells. Each cell contains materials, pressures, temperatures
-and other characteristics that are required to accurately simulate phenomena of
-interest. In our target application, the
-ParSplice~\cite{perez:jctc20150parsplice} molecular dynamics simulation, a
-hierarchy of caches and a single persistent key-value store are used to store
-both observed minima across a molecule's equation of motion (EOM) and the
-hundreds or thousands of partial trajectories calculated each second during a
-parallel job. Unfortunately, if we scale the system the IO to the storage
-hierarchy will quickly saturate both the storage and bandwidth capacity of a
-single node, so we need more effective data management techniques, such as
-cache management or load balancing across a cluster.
+Storage systems use software-based caches extensively to improve performance
+and resource utilization but the policies that guide what data to evict and
+when to evict vary with the application or use case. For example, caching file
+system metadata on both clients and servers reduces the number of remote
+procedure calls and drastically improves the performance of create-heavy
+workloads common in HPC~\cite{ren:sc2014-indexfs, patil:fast2011-giga+}. But
+these techniques are specific to the domain and application's behavior and a
+new use case may prove to be poor a match for the selected caching
+policy~\cite{sevilla:sc15-mantle, weil:sc2004-dyn-metadata,
+weil:osdi2006-ceph}. In this paper, we evaluate a variety of caching policies
+using a general framework that supports policy switching and arrive at a
+customized policy that works well for our target application and storage
+system.  Trying general policies and iterating to a very customized solution
+confirms that our prototype can adapt to different types of workloads; but more
+importantly, this is the second system and domain that we have successfully used
+this policy language and engine in. This breadth helps us reason about more
+general data management policies by giving us a framework to compare and
+contrast policies from other domains and services.
+
+Our target application is ParSplice~\cite{perez:jctc20150parsplice}, a
+molecular dynamics simulation that uses a hierarchy of caches and a single
+persistent key-value store to store both observed minima across a molecule's
+equation of motion (EOM) and the hundreds or thousands of partial trajectories
+calculated each second during a parallel job.  The fine-grained data annotation
+capabilities provided by key-value storage is a natural match for scientific
+simulations like ParSplice. But these simulations rely on a mesh-based
+decomposition of a physical region and result in millions or billions of mesh
+cells, where each cell contains materials, pressures, temperatures and other
+characteristics that are required to accurately simulate phenomena of interest.
+Unfortunately, this simulations of this size saturate the capcity and bandwidth
+capabilities of a single node so we need more effective data management
+techniques, such as cache management or load balancing across a cluster.
 
 \begin{figure}[t]
 \noindent\includegraphics[width=0.5\textwidth]{figures/cache-management.png}\\
