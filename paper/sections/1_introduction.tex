@@ -53,11 +53,11 @@ techniques, such as cache management or load balancing across a cluster.
 
 \begin{figure}[t]
 \noindent\includegraphics[width=0.5\textwidth]{figures/cache-management.png}\\
-
-\caption{Using our data management language and Mantle policy engine, we
-designed a dynamically sized caching policy for the ParSplice application. The
-solution uses knowledge about the application to detect key access patterns and
-adjust the cache accordingly. 
+\caption{Using our data management language and policy engine, we designed a
+dynamically sized caching policy (dashed line) for ParSplice. The solution uses
+knowledge about the application to detect key access patterns and adjust the
+cache accordingly. Compared to existing ParSplice configurations (solid lines),
+our solution saves the most memory without sacrificing performance.
 \label{fig:cache-management}}
 \end{figure}
 

@@ -96,7 +96,7 @@ whether we have absorbed the workload's initial burstiness. For CephFS, we save
 the number of consecutive instances that the server has been overloaded. We
 also clear the count (Line 10) if the server is no longer overloaded. 
 
-\textbf{Two-Part Policies} (Fig.~\ref{src:lru-dyn}: Line 6;
+\textbf{Multi-Policy Strategy} (Fig.~\ref{src:lru-dyn}: Line 6;
 Fig.~\ref{src:lua-cephfs}: Line 5) - after determining that the node is
 overloaded, these lines add an additional condition before the policy enters a
 data management state.  ParSplice trims its cache once it eclipses the
@@ -136,7 +136,7 @@ deleting (\texttt{rm}) the source code for the Linux kernel. If the system
 knows that the job phases would progress from many creates, to many lookups, to
 many deletes, then it could size its caches accordingly. For example, the file
 system could cache none of the metadata from the \texttt{untar} phase and run
-regime detection during the \texttt{make} phase, resulting in the metadata
+key access pattern detection during the \texttt{make} phase, resulting in the metadata
 server/clients only caching metadata that is repeatedly used. For the job in
 Figure~\ref{fig:compile-ops}, this would fill up the cache to only 20K inodes
 (the unit of metadata for file systems) instead of 60K, resulting in almost

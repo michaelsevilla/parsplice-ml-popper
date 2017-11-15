@@ -1,7 +1,7 @@
 \section{Methodology}
 
 %  \item background: CephFS implementation
-To explore dynamic cache management policies that change during the run, we use
+To explore software-defined cache management, we use
 the data management language and policy engine presented
 in~\cite{sevilla:sc15-mantle}. The prototype in that paper was called Mantle
 and it was originally built on the CephFS so administrators could control file
@@ -15,7 +15,7 @@ amount of data that should be sent. There is also a ``load" policy that lets
 administrators specify how to collapse many metrics into a single load metric
 ({\it e.g.}, \(2\times\texttt{cpu} + 3\times\texttt{memory usage}\)).
 
-The succinctness of the API lets users inject multiple, dynamic policies. In
+The succinctness of the API lets users inject multiple, possibly dynamic, policies. In
 this work we focus on a single node, so the ``where" policy is not used. When
 we move ParSplice to a distributed key-value store back-end, the ``where" policy
 can be used determine which key-value pairs should be moved to which node.
@@ -152,7 +152,7 @@ Section~\S\ref{sec:parsplice-keyspace-analysis} we only end up using the cache
 size although the other metrics proved to be valuable debugging tools. Using
 Mantle time series metrics, we expose accesses to the cache as a list of
 \texttt{timestamp, keyid} pairs. In Section~\S\ref{sec:dom-specific}, we
-explore a regime detection algorithm that uses this metric.
+explore a key access pattern detection algorithm that uses this metric.
 
 % where policies are made
 We link Mantle directly into the worker cache circled in red in

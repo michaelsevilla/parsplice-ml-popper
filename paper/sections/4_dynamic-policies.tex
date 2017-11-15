@@ -83,8 +83,8 @@ experiment is on the \(x\) axis.  \label{fig:methodology-tradeoff}}
 % why is the performance lower for smaller caches?
 Although the keyspace grows to 150K, a 100K key cache achieves 99\% of the
 performance. Decreasing the cache degrades performance and predictability.
-Despite the memory savings, our results suggest that dynamic cache management
-policies could save even more memory.  The middle plot in
+Despite the memory savings, our results suggest that a multi-policy cache management strategy
+could save even more memory.  The middle plot in
 Figure~\ref{fig:methodology-tradeoff} show that a 100K key cache is sufficient
 as a static policy but the top graph in Figure~\ref{fig:motivation-regimes}
 indicates that the cache size could be much smaller. That graph shows that the
@@ -101,8 +101,8 @@ resulting in very slow progress.  Traces verify this hypothesis and show reads
 getting backed up as the read/write ratio increases. To recap, small caches
 incur too much load on the persistent database  at the beginning of the run but
 should suffice after the initial read flash crowd passes because
-the keyspace is far less active. This suggests a two-part cache management
-policy.
+the keyspace is far less active. This suggests a multi-policy cache management
+strategy.
 
 %% Why is this a good idea
 %Although ParSplice does not use a distributed file system, its workload is very
@@ -116,7 +116,7 @@ policy.
 %Mantle and formalized balancers that were good for file systems.
 
 The plot on the right side of Figure~\ref{fig:methodology-tradeoff} shows the results of using Mantle
-to program a dynamic cache management policy into ParSplice that switches between
+to program a multi-policy cache management strategy into ParSplice that switches between
 two policies:
 
 \begin{itemize}
@@ -156,19 +156,19 @@ legend.  The curves stay close to ``Unlimited" for up to an hour after the
 cache is reduced but eventually flatten out as the persistent database gets
 overloaded. 10K and 100K follow the ``Unlimited" curve the longest and are
 sufficient policies for the 2.5 hour runs but anything longer would need a
-different dynamic cache management policy.
+different multi-policy cache management strategy.
 
 \begin{figure}[t]
   \noindent\includegraphics[height=5cm,width=0.4\textwidth]{figures/methodology-trajectory.png}\\
   \caption{The rate that the trajectory is computed decays over time (which is
   expected) but this skews the performance improvements in the ``Multi-Part Policy" graph in 
-  Figure~\ref{fig:methodology-tradeoff}. Our dynamic policy works for 2.5
+  Figure~\ref{fig:methodology-tradeoff}. Our multi-policy cache management strategy works for 2.5
   hour jobs but not for 4 hour jobs.  \label{fig:methodology-trajectory}}
 \end{figure}
 
 % but the result is still valid
-Despite these caveats, the result is still valid: we found a dynamic cache 
-management policy that absorbs the cost of a high read throughput on a small
+Despite these caveats, the result is still valid: we found multi-policy cache 
+management strategy that absorbs the cost of a high read throughput on a small
 keyspace and reduces the memory pressure for a 2.5 hour run. Our experiments
 show the effectiveness of the policy engine we integrated into
 ParSplice, not that we were able to identify the best policy for all system
@@ -311,8 +311,8 @@ if #fans < 2 then return false else
   return true
 end
 \end{minted}
-\caption{The ``Dynamically Sized Cache" policy from
-Figure~\ref{fig:cache-management} iterates backwards over timestamp-keyID pairs
-and detects when key accesses moves on to a new subset of
+\caption{The dynamically sized cache policy, whose performance is shown in 
+Figure~\ref{fig:cache-management}, iterates backwards over timestamp-keyID pairs
+and detects when key accesses move on to a new subset of
 keys.\label{src:dyn-cache}}
 \end{figure}
