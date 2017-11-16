@@ -17,3 +17,8 @@
 ++ awk '{print $1}'
 + ntasks=256
 + srun -N 8 -n 256 --cpu_bind=cores --output none /users/sevilla/parsplice-install/parsplice
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** JOB 166674 ON nid00042 CANCELLED AT 2017-11-16T00:54:23 DUE TO TIME LIMIT ***
+srun: got SIGCONT
+srun: got SIGCONT
+srun: forcing job termination
