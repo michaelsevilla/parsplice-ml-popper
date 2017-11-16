@@ -1,4 +1,4 @@
-a\subsection{Trajectory Length}
+\subsection{Trajectory Length}
 %
 %\subsection{Cloud Techniques: Elastic Search}
 %
@@ -163,38 +163,63 @@ we should use for different job permutations.
 
 \section{Cache Management Using Domain-Specific Application Knowledge}
 \label{sec:dom-specific}
-\begin{figure}[t]
-  \noindent\includegraphics[height=5cm,width=0.4\textwidth]{figures/keyspace-zoomed.png}\\
 
-  \caption{Key activity for a 4 hour run shows groups of accesses to the same
-  subset of keys. Detecting these access patterns leads to a more accurate cache
-  management strategy.\label{fig:keyspace-zoomed}}
-
-\end{figure}
-
-\begin{figure}[t]
-\noindent\includegraphics[width=0.5\textwidth]{figures/dscache-vs-none.png}\\
-
-\caption{The performance and resource utilization trade-off for the dynamically
-sized cache (DSCache) policy compared to no cache management. With a negligible
-performance impact, DSCache adjusts to different initial conditions
-(\(\Delta\)) automatically and saves over 2\(\times\) memory in the best case.
+\begin{figure*}[t!]
+    \begin{subfigure}[t]{0.32\textwidth}
+	\includegraphics[width=0.9\textwidth]{figures/keyspace-zoomed.png}\\
+\caption{Key activity for a 4 hour run shows groups of accesses to the same
+subset of keys. Detecting these access patterns leads to a more accurate cache
+management strategy, which is discussed in
+Section~\S\ref{sec:regime-detection}.\label{fig:keyspace-zoomed}}
+    \end{subfigure}%
+    ~ 
+    \begin{subfigure}[t]{0.32\textwidth}
+        \includegraphics[width=1\textwidth]{figures/memory-vs-time.png}\\
+	\caption{Memory utilization for ``No Cache Management" (unlimited cache
+growth), ``Multi-Policy" (absorbs initial burstiness of workload) , and
+``Dynamic Policy" (sizes cache according to key access patterns).
+\label{fig:memory-vs-time}}
+    \end{subfigure}%
+    ~
+    \begin{subfigure}[t]{0.32\textwidth}
+        \includegraphics[width=1\textwidth]{figures/dscache-vs-none.png}\\
+	\caption{Performance/Utilization for dynamically sized cache (DSCache)
+policy. With negligible performance degradation, DSCache adjusts to different
+\(\Delta\)s over 2\(\times\) memory in the best case.
 \label{fig:dscache-vs-none}}
-\end{figure}
+    \end{subfigure}%
+    \caption{Different cache management policies tested over the Mantle policy engine.}
+\end{figure*}
 
-\begin{figure}[t]
-\noindent\includegraphics[width=0.5\textwidth]{figures/memory-vs-time.png}\\
-
-\caption{Memory utilization of different cache management policies.  ``No Cache
-Management" allows unlimited cache growth, ``Multi-Policy" absorbs the initial
-burstiness of the workload before switching to a more constrained cache, and
-the ``Dynamic Policy" curves size the cache according to key access patterns.
-We show a \(\Delta_2\) growth rate to demonstrate the dynamic policy's ability
-to adjust to a different set of initial conditions.\label{fig:memory-vs-time}}
-\end{figure}
-
-
-
+%\begin{figure}[t]
+%  \noindent\includegraphics[height=5cm,width=0.4\textwidth]{figures/keyspace-zoomed.png}\\
+%
+%  \caption{Key activity for a 4 hour run shows groups of accesses to the same
+%  subset of keys. Detecting these access patterns leads to a more accurate cache
+%  management strategy.\label{fig:keyspace-zoomed}}
+%
+%\end{figure}
+%
+%\begin{figure}[t]
+%\noindent\includegraphics[width=0.5\textwidth]{figures/dscache-vs-none.png}\\
+%
+%\caption{The performance and resource utilization trade-off for the dynamically
+%sized cache (DSCache) policy compared to no cache management. With a negligible
+%performance impact, DSCache adjusts to different initial conditions
+%(\(\Delta\)) automatically and saves over 2\(\times\) memory in the best case.
+%\label{fig:dscache-vs-none}}
+%\end{figure}
+%
+%\begin{figure}[t]
+%\noindent\includegraphics[width=0.5\textwidth]{figures/memory-vs-time.png}\\
+%
+%\caption{Memory utilization of different cache management policies.  ``No Cache
+%Management" allows unlimited cache growth, ``Multi-Policy" absorbs the initial
+%burstiness of the workload before switching to a more constrained cache, and
+%the ``Dynamic Policy" curves size the cache according to key access patterns.
+%We show a \(\Delta_2\) growth rate to demonstrate the dynamic policy's ability
+%to adjust to a different set of initial conditions.\label{fig:memory-vs-time}}
+%\end{figure}
 
 Feeding domain-specific knowledge about the ParSplice application into a policy
 leads to more a accurate cache management strategy.
@@ -288,12 +313,14 @@ new thresholds for fan detection ({\it e.g.}, space between key accesses, space
 between key IDs, and window size of consecutive key accesses).
 
 The performance and memory utilization is shown by the ``DSCache" bars in
-Figure~\ref{dscache-vs-none.png}. Without sacrificing performance (trajectory
+Figure~\ref{fig:dscache-vs-none}. Without sacrificing performance (trajectory
 length), the dynamically sized cache policy uses between 32\%-66\% less memory
 than the default ParSplice configuration (no cache management) for the 3
 initial conditions we test. The memory usage is shown by the ``Dynamic Policy"
-curves in Figure~\ref{figures/memory-vs-time.png}, where the behavior mirrors
-the key access patterns in Figure~\ref{fig:keyspace-zoomed}.
+curves in Figure~\ref{fig:memory-vs-time}, where the behavior mirrors the key
+access patterns in Figure~\ref{fig:keyspace-zoomed}. We also show a
+\(\Delta_2\) growth rate to demonstrate the dynamic policy's ability to adjust
+to a different set of initial conditions.
 
 %For points \(z\), \(y\), and \(x\), if the
 %local minimum is the same we are in a regime.  Processing \(y\), we set the
@@ -306,11 +333,11 @@ the key access patterns in Figure~\ref{fig:keyspace-zoomed}.
 \begin{figure}[h]
 \footnotesize
 \begin{minted}[xleftmargin=3em,linenos]{lua}
-d = timeseries()          -- data (d) provided by mantle
-ts, id = d:get(d:size())  -- functions provided by mantle
+d = timeseries()          -- provided by mantle
+ts, id = d:get(d:size())  -- provided by mantle
 fan  = {start=nil, finish=ts, top=0, bottom=id}
 fans = {}
-for i=d:size(),1,-1 do -- detect possible fans
+for i=d:size(),1,-1 do    -- detect all fans
   ts, id = d:get(i)
   if id < fan['bottom'] then
     fan['start']  = ts
