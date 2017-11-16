@@ -19,14 +19,14 @@ hand-tuned cache.
 \section{Introduction}
 
 Storage systems use software-based caches extensively to improve performance
-and resource utilization but the policies that guide what data to evict and
-when to evict vary with the application or use case. For example, caching file
-system metadata on both clients and servers reduces the number of remote
-procedure calls and drastically improves the performance of create-heavy
-workloads common in HPC~\cite{ren:sc2014-indexfs, patil:fast2011-giga+}. But
-these techniques have policies, such as when to evict and what data to evict,
-that are specific to the domain and application's behavior, so a new use case
-may prove to be poor a match for the selected caching
+but the policies that guide what data to evict and when to evict vary with the
+application or use case. For example, caching file system metadata on both
+clients and servers reduces the number of remote procedure calls and
+drastically improves the performance of create-heavy workloads common in
+HPC~\cite{ren:sc2014-indexfs, patil:fast2011-giga+}. But these techniques have
+policies for when to evict and what data to evict that are specific to the
+application's behavior, so a new use case may prove to be poor a match for the
+selected caching
 policy~\cite{xiao:socc15-shardfs,brandt:msst2003-lh,sevilla:sc15-mantle,
 weil:sc2004-dyn-metadata, weil:osdi2006-ceph}. In this paper, we evaluate a
 variety of caching policies using a data management language/policy engine and

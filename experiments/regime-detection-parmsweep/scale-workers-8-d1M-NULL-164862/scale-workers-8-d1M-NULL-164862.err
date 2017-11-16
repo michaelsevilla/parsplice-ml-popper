@@ -1,0 +1,48 @@
++ echo
++ mkdir -p /lustre/ttscratch1/sevilla/parsplice-output/nano/scale-workers-8-d1M-NULL-164862/out
++ cd /lustre/ttscratch1/sevilla/parsplice-output/nano/scale-workers-8-d1M-NULL-164862
++ export LD_LIBRARY_PATH=/users/sevilla/parsplice-install/lib:/lustre/ttscratch1/sevilla/parsplice-support/boost_1_64_0/stage/lib
++ LD_LIBRARY_PATH=/users/sevilla/parsplice-install/lib:/lustre/ttscratch1/sevilla/parsplice-support/boost_1_64_0/stage/lib
++ export OMP_NUM_THREADS=1
++ OMP_NUM_THREADS=1
++ for i in '"input"' '"input.lammps"' '"voter-pt.eam"'
++ cp -r /lustre/ttscratch1/sevilla/parsplice-support/parsplice/sample-input/nanoparticle-growth/input .
++ for i in '"input"' '"input.lammps"' '"voter-pt.eam"'
++ cp -r /lustre/ttscratch1/sevilla/parsplice-support/parsplice/sample-input/nanoparticle-growth/input.lammps .
++ for i in '"input"' '"input.lammps"' '"voter-pt.eam"'
++ cp -r /lustre/ttscratch1/sevilla/parsplice-support/parsplice/sample-input/nanoparticle-growth/voter-pt.eam .
++ cp -r /lustre/ttscratch1/sevilla/parsplice-support/parsplice/cache-policies .
++ cp cache-policies/whenNULL.lua cache-policies/when.lua
++ sed -i 's/<Delay> 1000000 <\/Delay>/<Delay> 1000000 <\/Delay>/g' input/ps-config.xml
++ python /lustre/ttscratch1/sevilla/parsplice-support/parsplice/node-affinity/mkhosts-slurm-nospawn.py 32 1 1 1
+++ wc -l layout
+++ awk '{print $1}'
++ ntasks=256
++ srun -N 8 -n 256 --cpu_bind=cores --output none /users/sevilla/parsplice-install/parsplice
+srun: error: nid00090: task 4: Segmentation fault (core dumped)
+srun: Terminating job step 164862.0
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+srun: error: nid00092: tasks 64,69-73,75-76,81,95: Killed
+srun: error: nid00093: tasks 96-97,99,101,104-105,109,111,115,121,124,127: Killed
+srun: error: nid00095: tasks 160,163-165,167-173,176-178,182,191: Killed
+srun: error: nid00091: tasks 32-34,36-37,39-43,45-47,49,51,53,57,59,63: Killed
+srun: error: nid00097: tasks 224,227-228,230-236,238-239,241,243-244,246,249,251,254-255: Killed
+srun: error: nid00096: tasks 192-207,209-217,219-221,223: Killed
+srun: error: nid00094: tasks 128-129,131-143,145,147,149-151,153,159: Killed
+srun: error: nid00090: tasks 0-3,5-16,18-22,24-28,30-31: Killed
+srun: error: nid00092: tasks 65-68,79-80,84-85,87-88,92-94: Killed
+srun: error: nid00093: tasks 98,100,102-103,106-107,110,112-114,116-118,123: Killed
+srun: error: nid00095: tasks 161-162,166,174-175,179,181,183-188: Killed
+srun: error: nid00091: tasks 35,38,44,48,50,52,54-56,60-62: Killed
+srun: error: nid00097: tasks 225-226,229,237,240,242,245,247-248,253: Killed
+srun: error: nid00094: tasks 130,144,146,148,152,155-158: Killed
+srun: error: nid00090: tasks 23,29: Killed
+srun: error: nid00092: tasks 74,77-78,82-83,86,89,91: Killed
+srun: error: nid00096: tasks 208,218,222: Killed
+srun: error: nid00091: task 58: Killed
+srun: error: nid00095: tasks 180,189-190: Killed
+srun: error: nid00093: tasks 108,119-120,122,125-126: Killed
+srun: error: nid00094: task 154: Killed
+srun: error: nid00097: tasks 250,252: Killed
+srun: error: nid00092: task 90: Killed
+srun: error: nid00090: task 17: Killed

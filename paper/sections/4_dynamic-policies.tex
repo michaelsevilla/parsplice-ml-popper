@@ -1,4 +1,4 @@
-%\subsection{Trajectory Length}
+a\subsection{Trajectory Length}
 %
 %\subsection{Cloud Techniques: Elastic Search}
 %
@@ -61,7 +61,6 @@ deviation of 3 runs.
 
 \begin{figure}[t]
 \noindent\includegraphics[width=0.5\textwidth]{figures/methodology-tradeoff.png}\\
-
 \caption{The performance and resource utilization trade-off for different cache
 management policies. ``None" is ParSplice unmodified, ``Fixed Sized Cache"
 limits the size of the cache by evicting the least recently used items, and
@@ -142,29 +141,15 @@ which achieves 94\% of the performance while only using 40KB of memory.
 \subsubsection*{Caveats}
 
 The results in Figure~\ref{fig:methodology-tradeoff} are slightly deceiving for
-three reason: (1) segments take longer to generate later in the run, (2) the
-memory footprint is the value at the end of 2.5 hours, and (3) this policy only
-works well for the 2.5 hour run.  For (1), the curving down of the simulation
-vs. wall-clock time is shown in Figure~\ref{fig:methodology-trajectory}; as the
-nanoparticle grows it takes longer to generate segments so by the time we reach
-2 hours, over 90\% of the trajectory is already generated.  For (2), the memory
-footprint is around 0.4GB until we reach 100K key switch threshold. In
-Figures~\ref{fig:methodology-tradeoff} we plot the final value. For (3),
-Figure~\ref{fig:methodology-trajectory} shows that the cache fills up with 100K
-keys at time 7200 seconds and its size is reduced to the size listed in the
-legend.  The curves stay close to ``Unlimited" for up to an hour after the
-cache is reduced but eventually flatten out as the persistent database gets
-overloaded. 10K and 100K follow the ``Unlimited" curve the longest and are
-sufficient policies for the 2.5 hour runs but anything longer would need a
-different multi-policy cache management strategy.
-
-\begin{figure}[t]
-  \noindent\includegraphics[height=5cm,width=0.4\textwidth]{figures/methodology-trajectory.png}\\
-  \caption{The rate that the trajectory is computed decays over time (which is
-  expected) but this skews the performance improvements in the ``Multi-Part Policy" graph in 
-  Figure~\ref{fig:methodology-tradeoff}. Our multi-policy cache management strategy works for 2.5
-  hour jobs but not for 4 hour jobs.  \label{fig:methodology-trajectory}}
-\end{figure}
+two reasons: (1) segments take longer to generate later in the run and (2) the
+memory footprint is the value at the end of 2.5 hours.  For (1), the trajectory
+length vs vs.  wall-clock time curves down over time; as the nanoparticle grows
+it takes longer to generate segments so by the time we reach 2 hours, over 90\%
+of the trajectory is already generated.  For (2), the memory footprint is rises
+until we reach 100K key switch threshold at 0.4GB, as shown by the
+``\(\Delta_1\), Multi-Policy" curve in Figure~\ref{fig:memory-vs-time} but in
+Figure~\ref{fig:methodology-tradeoff} we plot the final value. As a result, we
+can only conclude that this policy only works well for this 2.5 hour run.
 
 % but the result is still valid
 Despite these caveats, the result is still valid: we found multi-policy cache 
@@ -186,6 +171,30 @@ we should use for different job permutations.
   management strategy.\label{fig:keyspace-zoomed}}
 
 \end{figure}
+
+\begin{figure}[t]
+\noindent\includegraphics[width=0.5\textwidth]{figures/dscache-vs-none.png}\\
+
+\caption{The performance and resource utilization trade-off for the dynamically
+sized cache (DSCache) policy compared to no cache management. With a negligible
+performance impact, DSCache adjusts to different initial conditions
+(\(\Delta\)) automatically and saves over 2\(\times\) memory in the best case.
+\label{fig:dscache-vs-none}}
+\end{figure}
+
+\begin{figure}[t]
+\noindent\includegraphics[width=0.5\textwidth]{figures/memory-vs-time.png}\\
+
+\caption{Memory utilization of different cache management policies.  ``No Cache
+Management" allows unlimited cache growth, ``Multi-Policy" absorbs the initial
+burstiness of the workload before switching to a more constrained cache, and
+the ``Dynamic Policy" curves size the cache according to key access patterns.
+We show a \(\Delta_2\) growth rate to demonstrate the dynamic policy's ability
+to adjust to a different set of initial conditions.\label{fig:memory-vs-time}}
+\end{figure}
+
+
+
 
 Feeding domain-specific knowledge about the ParSplice application into a policy
 leads to more a accurate cache management strategy.
@@ -277,6 +286,14 @@ show up again.  We exchange runtime, in the form of an O(\(n\)) algorithm where
 \(n\) is the number events, for simplicity because this approach avoids adding
 new thresholds for fan detection ({\it e.g.}, space between key accesses, space
 between key IDs, and window size of consecutive key accesses).
+
+The performance and memory utilization is shown by the ``DSCache" bars in
+Figure~\ref{dscache-vs-none.png}. Without sacrificing performance (trajectory
+length), the dynamically sized cache policy uses between 32\%-66\% less memory
+than the default ParSplice configuration (no cache management) for the 3
+initial conditions we test. The memory usage is shown by the ``Dynamic Policy"
+curves in Figure~\ref{figures/memory-vs-time.png}, where the behavior mirrors
+the key access patterns in Figure~\ref{fig:keyspace-zoomed}.
 
 %For points \(z\), \(y\), and \(x\), if the
 %local minimum is the same we are in a regime.  Processing \(y\), we set the
