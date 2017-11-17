@@ -93,24 +93,23 @@ originally touted as a programmable file system metadata load balancer, but we
 realize now that the collection of abstractions was a control plane that
 improved metadata access. So in this paper we refer to Mantle as a policy
 engine that injects policies written in our data management language directly
-into a running service, such as a file system or key-value store, and show how
-this approach is useful for reasoning about and designing different cache
-management strategies in ParSplice.  We show that Mantle:
+into a running service, such as a file system or key-value store.  Rather than
+co-designing a policy directly into the service, which requires domain-specific
+knowledge to find and change policies, we expose the policies in a general way
+so even developers unfamiliar with the domain can deploy quickly deploy solutions.
+We show that our framework:
 
 \begin{itemize}
 
   \item decomposes cache management into independent policies that can be
-  dynamically changed, making the problem more manageable. Even developers
-  unfamiliar with the domain can quickly deploy policies.
+  dynamically changed, making the problem more manageable and easier to reason
+  about.
 
-  \item can be used to deploy a variety of cache management strategies ranging
-  from basic algorithms and heuristics to statistical models and machine
-  learning. 
+  \item can deploy a variety of cache management strategies ranging from basic
+  algorithms and heuristics to statistical models and machine learning.
 
   \item has useful primitives that, while designed for file system metadata
-  load balancing, turn out to also be effective for cache management. This
-  finding shows how the policy engine generalizes to different domains and
-  enables control of policies by machines instead of administrators.
+  load balancing, turn out to also be effective for cache management. 
 
 \end{itemize}
 
@@ -125,7 +124,7 @@ disciplines; but more importantly, in Section~\S\ref{sec:scope}, we conclude
 that the collection of policies we designed for ParSplice's cache management
 are very similar to the policies used to load balance metadata in the Ceph file
 system (CephFS) suggesting that there is potential for automatically adapting
-and generating policies dynamically. 
+and generating policies dynamically.  
 
 %Manageable: abstracts away complexities of the system (pass around to others,
 %use different strategies) 

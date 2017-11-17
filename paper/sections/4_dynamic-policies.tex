@@ -225,12 +225,12 @@ Feeding domain-specific knowledge about the ParSplice application into a policy
 leads to more a accurate cache management strategy.
 Figure~\ref{fig:keyspace-zoomed} shows which keys (\(y\) axis) are accessed by
 the ParSplice tasks over time (\(x\) axis). The groups of accesses to a subset
-of keys, which we call an access ``fan" in subsequent sections, occurs because
-molecules are stuck in deep trajectories. Recall that the in-memory database
-stores the molecules' EOM minima, which is the smallest effective energy that a
-molecule observes during its trajectory. So molecules stuck in deep
-trajectories explore the same minima until they can escape to a new set of
-states. This exploration of the same set of states is called a superbasin. 
+of keys occurs because molecules are stuck in deep trajectories. Recall that
+the in-memory database stores the molecules' EOM minima, which is the smallest
+effective energy that a molecule observes during its trajectory. So molecules
+stuck in deep trajectories explore the same minima until they can escape to a
+new set of states. This exploration of the same set of states is called a
+superbasin. 
 
 Detecting these superbasins can lead to more effective cache management
 strategies because the height of the groups of key accesses is ``how much" of cache
@@ -262,11 +262,11 @@ Below we describe the policies we implemented and deployed using Mantle.
 To detect the access patterns in Figure~\ref{fig:keyspace-zoomed}, we try a
 variety of techniques using Mantle. Unfortunately, we found that they all
 proliferated more parameters that need to be tuned. Furthermore, we find that
-many of the metrics do not signal a new fans, that our metrics are not accurate
-enough, and that even if we tune all parameters they still will not work for
-all initial conditions.  Below, we indicate which parameters we need to add for
-each technique and the value we find to work best, via tuning and parameter
-sweeps, for one set of initial conditions.
+many of the metrics do not signal a new set of key accesses, that our metrics
+are not accurate enough, and that even if we tune all parameters they still
+will not work for all initial conditions.  Below, we indicate which parameters
+we need to add for each technique and the value we find to work best, via
+tuning and parameter sweeps, for one set of initial conditions.
 
 \begin{itemize}
 
@@ -274,12 +274,13 @@ sweeps, for one set of initial conditions.
 evicted.  ``history-of-key-accesses", set to 10 seconds, to evict keys.
 
   \item Calculus: use derivative to strip away magnitudes; use large positive
-slopes followed large negative slope as signal for new fan. ``Zero-crossing"
-for distance between small/large spikes to avoid false positives, set to 40
-seconds; `window size", set to 200 seconds, for the size of the moving average 
+slopes followed large negative slope as signal for new set of key accesses.
+``Zero-crossing" for distance between small/large spikes to avoid false
+positives, set to 40 seconds; `window size", set to 200 seconds, for the size
+of the moving average 
 
   \item K-Means Clustering fails because ``K" is not known {\it a-priori} and
-fans are different size. ``K", set to 4, for the number of clusters in the data
+groups of key accesses are different size. ``K", set to 4, for the number of clusters in the data
 using the sum of the distances to the centroid
 
   \item DBScan: finds clusters using density as a metric. ``Eps", set to 20, for
@@ -294,23 +295,25 @@ not thick enough
 \subsection{Dynamically Sized Cache: Access Pattern Detection}
 \label{sec:regime-detection}
 
-Figure~\ref{src:dyn-cache} shows the algorithm we use to detect the key access
-patterns. Iterating backwards through the key access trace, at each time step we
-find the lowest key ID and compare against the lowest key ID we have seen so
-far (Line 7). We also maintain the top and bottom of each fan (Line 13) so we
-can tell the ``how much" policy the number of keys to evict (Line 19).  The
-algorithm iterates backwards over the key access trace because a change in the
-minimum value signals a new fan. No signal exists iterating left to right, as
-the maximum value always increases and the minimum values at the bottom of each
-fan are sparse.  For example, the maximum distance between values along the
-bottom edge of the zoomed fan in Figure~\ref{fig:keyspace-zoomed} is 125
-seconds, while the maximum distance between minimum values for the fan before
-is 0 seconds. As a result of this sparseness, iterating left to right requires
-a ``window size" parameter to determine when we think a minimum value will not
-show up again.  We exchange runtime, in the form of an O(\(n\)) algorithm where
-\(n\) is the number events, for simplicity because this approach avoids adding
-new thresholds for fan detection ({\it e.g.}, space between key accesses, space
-between key IDs, and window size of consecutive key accesses).
+Figure~\ref{src:dyn-cache} shows the algorithm we use to detect groups of key
+access patterns, which we call ``fans". Iterating backwards through the key
+access trace, at each time ste`p we find the lowest key ID and compare against
+the lowest key ID we have seen so far (Line 7). We also maintain the top and
+bottom of each group of key accesses (Line 13) so we can tell the ``how much"
+policy the number of keys to evict (Line 19).  The algorithm iterates backwards
+over the key access trace because a change in the minimum value signals a new
+group of key accesses. No signal exists iterating left to right, as the maximum
+value always increases and the minimum values at the bottom of each group of
+key accesses are sparse.  For example, the maximum distance between values
+along the bottom edge of the zoomed group of key accesses in
+Figure~\ref{fig:keyspace-zoomed} is 125 seconds, while the maximum distance
+between minimum values for the group of key accesses before is 0 seconds. As a
+result of this sparseness, iterating left to right requires a ``window size"
+parameter to determine when we think a minimum value will not show up again.
+We exchange runtime, in the form of an O(\(n\)) algorithm where \(n\) is the
+number events, for simplicity because this approach avoids adding new
+thresholds for key access pattern detection ({\it e.g.}, space between key
+accesses, space between key IDs, and window size of consecutive key accesses).
 
 The performance and memory utilization is shown by the ``DSCache" bars in
 Figure~\ref{fig:dscache-vs-none}. Without sacrificing performance (trajectory
@@ -321,14 +324,6 @@ curves in Figure~\ref{fig:memory-vs-time}, where the behavior mirrors the key
 access patterns in Figure~\ref{fig:keyspace-zoomed}. We also show a
 \(\Delta_2\) growth rate to demonstrate the dynamic policy's ability to adjust
 to a different set of initial conditions.
-
-%For points \(z\), \(y\), and \(x\), if the
-%local minimum is the same we are in a regime.  Processing \(y\), we set the
-%local minimum to be \(min(y, m_l)\), where \(m_l\) is the local minimum of the
-%previous time step of \(z\).  The algorithm incorrectly detects a regime change
-%if the local minimum of \(y\) is lower than local minimum of \(z\), since \(y\)
-%may have points {\it within} \(z\); recall that we are trying to detect the
-%whole fan, not just the bottom edge of each fan. 
 
 \begin{figure}[h]
 \footnotesize
@@ -358,5 +353,5 @@ end
 \caption{The dynamically sized cache policy, whose performance is shown in 
 Figure~\ref{fig:cache-management}, iterates backwards over timestamp-keyID pairs
 and detects when key accesses move on to a new subset of
-keys.\label{src:dyn-cache}}
+keys. We refer to groups of key accesses as ``fans".\label{src:dyn-cache}}
 \end{figure}
