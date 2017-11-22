@@ -68,7 +68,7 @@ designed for cache management in ParSplice. The similarities show how the
 engine may be widely applicable to other data management techniques, such as
 QoS, scheduling, and batching.
 
-\subsection{Using File System Policies for ParSplice}
+\subsection{Using Load Balancing Policies for Cache Management}
 
 %- memory utilization/heuristics
 From a high-level the cache management policy we designed in
@@ -104,7 +104,7 @@ data management state.  ParSplice trims its cache once it eclipses the
 two iterations. The persistent state is essential for both of these
 policy-switching conditions.
 
-\subsection{Using ParSplice Policies for File Systems}
+\subsection{Using Cache Management Policies for Load Balancing}
 
 %- how many inodes to keep in mds/client caches
 %- affects LB; increases capacity of single MDS (reduces req/mem pressure)
