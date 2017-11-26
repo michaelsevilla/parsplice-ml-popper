@@ -49,9 +49,9 @@
 
 \begin{figure}[t]
 \noindent\includegraphics[width=0.5\textwidth]{figures/parsplice.png}\\
-\caption{The ParSplice architecture has a storage hierarchy of caches and a
-dedicated cache node (boxes) backed by a persistent database (DB). A splicer
-(S) tells worker (W) to generate segments and workers employ tasks (T) for more
+\caption{The ParSplice architecture has a storage hierarchy of caches (boxes) and a
+dedicated cache process (large box) backed by a persistent database (DB). A splicer
+(S) tells workers (W) to generate segments and workers employ tasks (T) for more
 parallelization. We focus on the worker's cache (circled), which facilitates
 communication and segment exchange between the worker and its tasks.
 \label{fig:parsplice}}
@@ -106,20 +106,6 @@ frequent transitions but temperatures that are too high result in meaningless
 simulations because trajectories have so much energy that they are equally
 likely to visit any random state. 
 
-Changing growth rates and temperature alters the size, shape, and locality of
-the keyspace. Lower temperatures and smaller growth rates create
-hotter keys with smaller keyspaces as many segments are generated in the same
-set of states before the trajectory can escape to a new region of state space.
-In Figure~\ref{fig:motivation-regimes}, the \(\Delta_1\) growth rate adds atoms
-every 100K microseconds while the \(\Delta_2\) growth rate adds atoms every 1
-million microseconds. So \(\Delta_2\) has a smaller growth rate resulting in
-hotter keys (line on \(y1\) axis) and a smaller keyspace (dots on the \(y2\)
-axis).  Values smaller than \(\Delta_2\)'s growth rate or a temperature of 400
-degrees results in very little database activity because state transitions take
-too long. Similarly, values larger than \(\Delta_1\)'s growth rate or a
-temperature of 4000 degrees result in an equally meaningless simulation as
-transitions are unrealistic.
-
 Our evaluation uses the total ``trajectory length" as the goodness metric. This
 value is the duration of the overall trajectory produced by ParSplice. At
 ideal efficiency, the trajectory length should increase with the square root of
@@ -168,6 +154,15 @@ comes instrumented with its own set of performance counters.
 \end{figure}
 
 \begin{figure}[t]
+  \noindent\includegraphics[width=0.5\textwidth]{figures/motivation-regimes.png}\\
+  \caption{The keyspace activity for ParSplice using two different growth
+rates.  The line shows the rate that EOM minima values are retrieved from the
+key-value store (\(y1\) axis) and the points along the bottom show the number
+of keys accessed in a 1 second sliding window (\(y2\) axis).
+\label{fig:motivation-regimes}}
+\end{figure}
+
+\begin{figure}[t]
   \noindent\includegraphics[width=0.5\textwidth]{figures/methodology-keys.png}\\
   \caption{The keyspace imbalance is due to workers generating deep
   trajectories and reading the same coordinates. Over time, the accesses get
@@ -177,33 +172,33 @@ comes instrumented with its own set of performance counters.
 
 \subsubsection*{Scalability} Figure~\ref{fig:methodology-keyspace} shows the
 keyspace size (text annotations) and request load (bars) after a one hour run
-with a different number of workers (\(x\) axis). While the keyspace size and
+with a different number of tasks(\(x\) axis). While the keyspace size and
 capacity is relatively modest the memory usage scales linearly with the number
-of workers. This is a problem if we want to scale to Trinitite's 6000 cores.
+of tasks. This is a problem if we want to scale to Trinitite's 3000 cores.
 Furthermore, the size of the keyspace also increases linearly with the length
 of the run.  Extrapolating these results puts an 8 hour run across all 100
 Trinitite nodes at 20GB for the cache.  This memory utilization easily eclipses
-the 3\% threshold we set earlier, even without factoring in the memory usage
-from other workers.
-
-\begin{figure}[t]
-  \noindent\includegraphics[width=0.5\textwidth]{figures/motivation-regimes.png}\\
-  \caption{The keyspace activity for ParSplice using two different growth
-rates.  The line shows the rate that EOM minima values are retrieved from the
-key-value store (\(y1\) axis) and the points along the bottom show the number
-of keys accessed in a 1 second sliding window (\(y2\) axis).
-\label{fig:motivation-regimes}}
-\end{figure}
+the 3\% memory usage per node threshold we set earlier, even without factoring
+in the usage from other workers.
 
 \subsubsection*{An active but small keyspace}
+
 Figure~\ref{fig:motivation-regimes} shows how ParSplice tasks read key-value
 pairs from the worker's cache for two different initial conditions of
 \(\Delta\), which is the rate that new atoms enter the simulation.  The line is
 the read request rate (\(y1\) axis) and the dots along the bottom are the
-number of unique keys accessed (\(y2\) axis).  This figure demonstrates that
-small changes to \(\Delta\) can have a strong effect on the timing and
-frequency with which new EOM minima are discovered and referenced. This finding
-suggests that we need a flexible policy language and engine. 
+number of unique keys accessed (\(y2\) axis).  The \(\Delta_1\) growth rate
+adds atoms every 100K microseconds while the \(\Delta_2\) growth rate adds
+atoms every 1 million microseconds. So \(\Delta_2\) has a smaller growth rate
+resulting in hotter keys (line on \(y1\) axis) and a smaller keyspace (dots on
+the \(y2\) axis).  Values smaller than \(\Delta_2\)'s growth rate or a
+temperature of 400 degrees results in very little database activity because
+state transitions take too long. Similarly, values larger than \(\Delta_1\)'s
+growth rate or a temperature of 4000 degrees result in an equally meaningless
+simulation as transitions are unrealistic.  This figure demonstrates that small
+changes to \(\Delta\) can have a strong effect on the timing and frequency with
+which new EOM minima are discovered and referenced. This finding suggests that
+we need a flexible policy language and engine to explore these trade-offs.
 
 The bars in Figure~\ref{fig:methodology-keyspace} show \(50-100\times\) as many
 reads (\texttt{get()}) as writes (\texttt{put()}).  Worker tasks read the same
@@ -211,11 +206,10 @@ key for extended periods because the trajectory can remain stuck in so-called
 superbasins composed of tightly connected sets of states. In this case, many
 trajectory segments with the same coordinates are needed before the trajectory
 moves on.  Writes only occur for the final state of segments generated by
-worker tasks; their magnitude is smaller than reads because the caches ignore
+tasks; their magnitude is smaller than reads because the caches ignore
 redundant write requests. The number of read and write requests are highest at
-the beginning of the run when worker tasks generate segments for the same
-state, which is computationally cheap (this motivates
-Section~\S\ref{sec:dom-specific}).
+the beginning of the run when tasks generate segments for the same state, which
+is computationally cheap (this motivates Section~\S\ref{sec:arch-specific}).
 
 \subsubsection*{Entropy increases over time} The reads per second in
 Figure~\ref{fig:motivation-regimes} show that the number of requests decreases
@@ -224,15 +218,15 @@ imbalance for the two growth rates in Figure~\ref{fig:motivation-regimes} are
 shown in Figure~\ref{fig:methodology-keys}, where reads are plotted for each
 unique state, or key, along the \(x\) axis. Keys are more popular than others
 (up to \(5\times\)) because worker tasks start generating states with different
-coordinates later in the run (this motivates Section~\S\ref{sec:dom-specific}).
-The growth rate, temperature, and number of workers have a predictable effect
-on the structure of the keyspace.  Figure~\ref{fig:methodology-keys} shows that
-the number of reads changes with different initial conditions (\(\Delta\)), but
-that the spatial locality of key accesses is similar ({\it e.g.}, some keys are
-still \(5\times\) more popular than others).
-Figure~\ref{fig:motivation-regimes} shows how entropy for different growth
-rates has temporal locality, as the reads per second for \(\Delta_2\) looks
-like the reads per second for \(\Delta_1\) stretched out along the time axis.
-Trends also exist for temperature and number of workers but are omitted here
-for space. This structure means that we can learn the key access patterns and adapt the
-storage system accordingly (this motivates Section~\S\ref{sec:dom-specific}).
+coordinates later in the run.  The growth rate, temperature, and number of
+workers have a predictable effect on the structure of the keyspace.
+Figure~\ref{fig:methodology-keys} shows that the number of reads changes with
+different initial conditions (\(\Delta\)), but that the spatial locality of key
+accesses is similar ({\it e.g.}, some keys are still \(5\times\) more popular
+than others).  Figure~\ref{fig:motivation-regimes} shows how entropy for
+different growth rates has temporal locality, as the reads per second for
+\(\Delta_2\) look like the reads per second for \(\Delta_1\) stretched out
+along the time axis.  Trends also exist for temperature and number of workers
+but are omitted here for space. This structure means that we can learn the key
+access patterns and adapt the storage system accordingly (this motivates
+Section~\S\ref{sec:dom-specific}).

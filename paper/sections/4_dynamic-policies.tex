@@ -1,4 +1,4 @@
-\subsection{Trajectory Length}
+%\subsection{Trajectory Length}
 %
 %\subsection{Cloud Techniques: Elastic Search}
 %
@@ -13,40 +13,33 @@
 \label{sec:arch-specific}
 
 Using the Mantle policy engine, we test a variety of cache management tools and
-algorithms on a single in-memory database node using the keyspace analysis in
-Section~\S\ref{sec:parsplice-keyspace-analysis}. These strategies are
-implemented as the ``when" and ``how much" policies from the Mantle API; the
-``where" callback does not make sense for a single node (segments are either in
-the cache or they are not). The evaluation metric is the accuracy and runtime
-of each strategy; the strategy should be accurate enough so as to sacrifice
-negligible performance and fast enough to run as often as we want to detect key
-access patterns. The goal of the following sections is not to find an optimal
-solution, as this can be done with parameter sweeps for thresholds; rather, we
-try to find techniques that work for a range of inputs and system setups.
-
-First we sized the cache according to our system specific knowledge. By
-``system", we mean the hardware and software of the storage hierarchy. We look
-at request rate, unique keys in a sliding window, and bandwidth capabilities. For
-example, we know that LevelDB cannot handle high IO request rates.
+algorithms on the worker using the keyspace analysis in
+Section~\S\ref{sec:parsplice-keyspace-analysis}.  The evaluation metric is the
+accuracy and runtime of each strategy; the policy should be accurate enough so
+as to sacrifice negligible performance and fast enough to run as often as we
+want to detect key access patterns.  First we sized the cache according to our
+system specific knowledge. By ``system", we mean the hardware and software of
+the storage hierarchy. We look at request rate, unique keys in a sliding
+window, and bandwidth capabilities. For example, we know that LevelDB cannot
+handle high IO request rates.
 
 % technical details
-In the original ParSplice implementation, each cache node uses an unlimited
-amount of memory to store segment coordinates. We limit the size of the cache
-using an LRU eviction policy, where the penalty for a cache miss is retrieving
-the data from the persistent database.  We evict keys (if necessary) at every
-operation instead of when segments complete because the cache fills up too
-quickly otherwise.
-
 The results for different cache sizes for a growth rate of \(\Delta_1\) over a
 2.5 hour run across 256 workers is shown in
 Figure~\ref{fig:methodology-tradeoff}.  ``Baseline" is the performance of
 unmodified ParSplice  measured in trajectory duration (\(y\) axis) and
 utilization is measured with memory footprint of just the cache (\(y2\) axis).
-The other graph shares the \(y\) axis and shows the trade-off of using a basic
-LRU-style cache for different cache sizes, implemented using a ``when" policy
-of \texttt{server[whoami]['cachesize']>n} and a ``how much" policy of
-\texttt{servers[whoami]['cachesize']-n}. The error bars are the standard
-deviation of 3 runs. 
+The middle graph shares the \(y\) axis and shows the trade-off of using a basic
+LRU-style cache for different cache sizes, where the penalty for a cache miss
+is retrieving the data from the persistent database.  We evict keys (if
+necessary) at every operation instead of when segments complete because the
+cache fills up too quickly otherwise. This is implemented using a ``when"
+policy of \texttt{server[whoami]['cachesize']>n} and a ``how much" policy of
+\texttt{servers[whoami]['cachesize']-n}.  The error bars are the standard
+deviation of 3 runs.  Although the keyspace grows to 150K, a 100K key cache
+achieves 99\% of the performance. Decreasing the cache degrades performance and
+predictability.
+
 %\begin{figure}[h] \footnotesize \begin{minted}{lua}
 %server[whoami]['cachesize'] > n \end{minted} \end{figure}
 
@@ -80,62 +73,39 @@ experiment is on the \(x\) axis.  \label{fig:methodology-tradeoff}}
 %Figure~\ref{fig:methodology-tradeoff}.  \label{src:lru}} \end{figure}
 
 % why is the performance lower for smaller caches?
-Although the keyspace grows to 150K, a 100K key cache achieves 99\% of the
-performance. Decreasing the cache degrades performance and predictability.
-Despite the memory savings, our results suggest that a multi-policy cache management strategy
-could save even more memory.  The middle plot in
-Figure~\ref{fig:methodology-tradeoff} show that a 100K key cache is sufficient
-as a static policy but the top graph in Figure~\ref{fig:motivation-regimes}
-indicates that the cache size could be much smaller. That graph shows that the
-beginning of the run is characterized by many reads to a small set of keys and
-the end sees much lower reads per second to a larger keyspace. Specifically, it
-shows only about 100 keys as active in the latter half of the run.
-
-After analyzing traces, we see that the 100 key cache is insufficient because
-the persistent database cannot service the read-write traffic.  According to
-Figure~\ref{fig:motivation-regimes}, the read requests arrive at 750 reads per
-second in addition to the writes that land in each tier (about 300 puts/second,
-some redundant). This traffic triggers a LevelDB compaction and reads block,
-resulting in very slow progress.  Traces verify this hypothesis and show reads
-getting backed up as the read/write ratio increases. To recap, small caches
-incur too much load on the persistent database  at the beginning of the run but
-should suffice after the initial read flash crowd passes because
-the keyspace is far less active. This suggests a multi-policy cache management
-strategy.
-
-%% Why is this a good idea
-%Although ParSplice does not use a distributed file system, its workload is very
-%similar because the minima key-value store responds to small and frequent
-%requests, which results in hot spots and flash crowds.  Modern distributed file
-%systems have found efficient ways to measure, migrate, and partition metadata
-%load and have shown large performance gains and
-%better scalability~\cite{zheng:pdsw2014-batchfs, zheng:pdsw2015-deltafs,
-%grider:pdsw2015-marfs, ren:sc2014-indexfs, patil:fast2011-giga+,
-%brandt:msst2003-lh}.  Previous work quantified the speedups achieved with
-%Mantle and formalized balancers that were good for file systems.
-
-The plot on the right side of Figure~\ref{fig:methodology-tradeoff} shows the results of using Mantle
-to program a multi-policy cache management strategy into ParSplice that switches between
-two policies:
+But the top graph in Figure~\ref{fig:motivation-regimes} suggests that a
+smaller cache size should suffice, as only 100 keys seem to be active at any
+one time.  It turns out that the unique keys plotted in
+Figure~\ref{fig:motivation-regimes} are per second and are not representative
+of the actual active keyspace; the number of active keys is larger than 100, as
+some keys may be accessed at time \(t_0\), not in \(t_1\), and then again in
+\(t_2\). Because the cache is too small, reads and writes hit the persistent
+database, where the excessive traffic triggers a LevelDB compaction and reads
+block.  To avoid overloading the storage hierarchy with requests, we design a
+multi-part policy that switches between:
 
 \begin{itemize}
   \item unlimited growth policy: cache increases on every write
   \item \(n\) key limit policy: cache constrained to \(n\) keys
 \end{itemize}
 
-The actual policy is shown and described in more detail in the next section in
-Figure~\ref{src:lru-dyn}.  We trigger the policy switch at 100K keys to absorb
-the flash crowd at the beginning of the run. Once triggered, keys are evicted
-to bring the size of the cache down to the threshold.  In the bar chart, the
-cache sizes for the \(n\) key limit policy are along the \(x\) axis.
-
 % results: same level of performance can be achieved 
-The multi-part policies show better performance than the single \(n\) key
-policies. The performance and memory utilization for a 100K key cache size is
-the same as the 100K bar in the ``Multi-Part Policy" graph in  Figure~\ref{fig:methodology-tradeoff} but
-the rest reduce the size of the keyspace after the read flash crowd.  We see
-the worst performance when the engine switches to the 10 key limit policy,
-which achieves 94\% of the performance while only using 40KB of memory. 
+The key observation is that small caches incur too much load on the persistent
+database at the beginning of the run but should suffice after the initial read
+flash crowd passes because the keyspace is far less active.  We program Mantle
+to trigger the policy switch at 100K keys to absorb the flash crowd at the
+beginning of the run. Once triggered, keys are evicted to bring the size of the
+cache down to the threshold.  The actual policy is shown and described in more
+detail in the next section in Figure~\ref{src:lru-dyn}.  The plot on the right
+side of Figure~\ref{fig:methodology-tradeoff} shows the performance/utilization
+trade-off of the multi-part policy, where the cache sizes for the \(n\) key
+limit policy are along the \(x\) axis.  They show better performance than the
+single \(n\) key policies. The performance and memory utilization for a 100K
+key cache size is the same as the 100K bar in the ``Multi-Part Policy" graph in
+Figure~\ref{fig:methodology-tradeoff} but the rest reduce the size of the
+keyspace after the read flash crowd.  We see the worst performance when the
+engine switches to the 10 key limit policy, which achieves 94\% of the
+performance while only using 40KB of memory. 
 
 % caveats: it is calculating 90% of the trajectory, memory value reported is final
 \subsubsection*{Caveats}
@@ -143,16 +113,16 @@ which achieves 94\% of the performance while only using 40KB of memory.
 The results in Figure~\ref{fig:methodology-tradeoff} are slightly deceiving for
 two reasons: (1) segments take longer to generate later in the run and (2) the
 memory footprint is the value at the end of 2.5 hours.  For (1), the trajectory
-length vs vs.  wall-clock time curves down over time; as the nanoparticle grows
+length vs.  wall-clock time curves down over time; as the nanoparticle grows
 it takes longer to generate segments so by the time we reach 2 hours, over 90\%
-of the trajectory is already generated.  For (2), the memory footprint is rises
+of the trajectory is already generated.  For (2), the memory footprint rises
 until we reach 100K key switch threshold at 0.4GB, as shown by the
 ``\(\Delta_1\), Multi-Policy" curve in Figure~\ref{fig:memory-vs-time} but in
 Figure~\ref{fig:methodology-tradeoff} we plot the final value. As a result, we
 can only conclude that this policy only works well for this 2.5 hour run.
 
 % but the result is still valid
-Despite these caveats, the result is still valid: we found multi-policy cache 
+Despite these caveats, the result is still valid: we found a multi-policy cache 
 management strategy that absorbs the cost of a high read throughput on a small
 keyspace and reduces the memory pressure for a 2.5 hour run. Our experiments
 show the effectiveness of the policy engine we integrated into
@@ -225,27 +195,31 @@ policy. With negligible performance degradation, DSCache adjusts to different
 %\end{figure}
 
 Feeding domain-specific knowledge about the ParSplice application into a policy
-leads to more a accurate cache management strategy.
+leads to more a accurate cache management strategy.  The goal of the following
+sections is not to find an optimal solution, as this can be done with parameter
+sweeps for thresholds; rather, we try to find techniques that work for a range
+of inputs and system setups.
+
 Figure~\ref{fig:keyspace-zoomed} shows which keys (\(y\) axis) are accessed by
-the ParSplice tasks over time (\(x\) axis). The groups of accesses to a subset
-of keys occurs because molecules are stuck in deep trajectories. Recall that
-the in-memory database stores the molecules' EOM minima, which is the smallest
-effective energy that a molecule observes during its trajectory. So molecules
-stuck in deep trajectories explore the same minima until they can escape to a
-new set of states. This exploration of the same set of states is called a
-superbasin. 
+tasks over time (\(x\) axis). The groups of accesses to a subset of keys occurs
+because molecules are stuck in deep trajectories. Recall that the cache stores
+the molecules' EOM minima, which is the smallest effective energy that a
+molecule observes during its trajectory. So molecules stuck in deep
+trajectories explore the same minima until they can escape to a new set of
+states. This exploration of the same set of states is called a superbasin.  In
+Figure~\ref{fig:keyspace-zoomed}, superbasins are never re-visited because the
+simulation only adds molecules; we can never reach a state with less molecules.
+This is why keys are never re-accessed.  Despite these patterns, the following
+characteristics of superbasins make it hard to detect them:
 
 Detecting these superbasins can lead to more effective cache management
-strategies because the height of the groups of key accesses is ``how much" of cache
-to evict and the width of the groups of key accesses is ``when" to evict values from
-the cache.  The zoomed portion of Figure~\ref{fig:keyspace-zoomed} shows how a
-single superbasin affects the key accesses. Moving along the \(x\) axis shows
-that the number of unique keys accessed over time grows while moving along the
-\(y\) axis shows that early keys are accessed more often.  Overall, superbasins
-are never re-visited because the simulation only adds molecules; we can never
-reach a state with less molecules. This is why keys are never re-accessed.
-Despite these patterns, the following characteristics of superbasins make it
-hard to detect them:
+strategies because the height of the groups of key accesses is ``how much" of
+the cache to evict and the width of the groups of key accesses is ``when" to
+evict values from the cache.  The zoomed portion of
+Figure~\ref{fig:keyspace-zoomed} shows how a single superbasin affects the key
+accesses. Moving along the \(x\) axis shows that the number of unique keys
+accessed over time grows while moving along the \(y\) axis shows that early
+keys are accessed more often.
 
 \begin{itemize}
 
@@ -263,24 +237,23 @@ Below we describe the policies we implemented and deployed using Mantle.
 \subsection{Failed Strategies}
 
 To detect the access patterns in Figure~\ref{fig:keyspace-zoomed}, we try a
-variety of techniques using Mantle. Unfortunately, we found that they all
-proliferated more parameters that need to be tuned. Furthermore, we find that
-many of the metrics do not signal a new set of key accesses, that our metrics
-are not accurate enough, and that even if we tune all parameters they still
-will not work for all initial conditions.  Below, we indicate which parameters
-we need to add for each technique and the value we find to work best, via
-tuning and parameter sweeps, for one set of initial conditions.
+variety of techniques using Mantle. Unfortunately, we found that the following
+techniques proliferate more parameters that need to be tuned per
+hardware/software configuration. Furthermore, we find that many of the metrics
+do not signal a new set of key accesses.  Below, we indicate with quotes which
+parameters we need to add for each technique with and the value we find to work
+best, via tuning and parameter sweeps, for one set of initial conditions.
 
 \begin{itemize}
 
-  \item Statistics: decay on each key counts down until 0 0-valued keys are
+  \item Statistics: decay on each key counts down until 0; 0-valued keys are
 evicted.  ``history-of-key-accesses", set to 10 seconds, to evict keys.
 
   \item Calculus: use derivative to strip away magnitudes; use large positive
-slopes followed large negative slope as signal for new set of key accesses.
-``Zero-crossing" for distance between small/large spikes to avoid false
-positives, set to 40 seconds; `window size", set to 200 seconds, for the size
-of the moving average 
+slopes followed by large negative slope as signal for new set of key accesses.
+``Zero-crossing", set to 40 seconds, for distance between small/large spikes to
+avoid false positives; `window size", set to 200 seconds, for the size of the
+moving average 
 
   \item K-Means Clustering fails because ``K" is not known {\it a-priori} and
 groups of key accesses are different size. ``K", set to 4, for the number of clusters in the data
@@ -298,17 +271,18 @@ not thick enough
 \subsection{Dynamically Sized Cache: Access Pattern Detection}
 \label{sec:regime-detection}
 
-Figure~\ref{src:dyn-cache} shows the algorithm we use to detect groups of key
-access patterns, which we call ``fans". Iterating backwards through the key
-access trace, at each time step we find the lowest key ID and compare against
-the lowest key ID we have seen so far (Line 7). We also maintain the top and
-bottom of each group of key accesses (Line 13) so we can tell the ``how much"
-policy the number of keys to evict (Line 19).  The algorithm iterates backwards
-over the key access trace because a change in the minimum value signals a new
-group of key accesses. No signal exists iterating left to right, as the maximum
-value always increases and the minimum values at the bottom of each group of
-key accesses are sparse.  For example, the maximum distance between values
-along the bottom edge of the zoomed group of key accesses in
+After trying these techniques we found that the basic algorithm in
+Figure~\ref{src:dyn-cache} works best. The algorithm detects groups of key
+access patterns, which we call ``fans", by iterating backwards through the key
+access trace, finding the lowest key ID, and comparing against the lowest key
+ID we have seen so far (Line 7). We also maintain the top and bottom of each
+group of key accesses (Line 13) so we can tell the ``how much" policy the
+number of keys to evict (Line 19).  The algorithm iterates backwards over the
+key access trace because a change in the minimum value signals a new group of
+key accesses. No signal exists iterating left to right, as the maximum value
+always increases and the minimum values at the bottom of each group of key
+accesses are sparse.  For example, the maximum distance between values along
+the bottom edge of the zoomed group of key accesses in
 Figure~\ref{fig:keyspace-zoomed} is 125 seconds, while the maximum distance
 between minimum values for the group of key accesses before is 0 seconds. As a
 result of this sparseness, iterating left to right requires a ``window size"
