@@ -63,10 +63,10 @@ In the previous section, we used our data management language and the Mantle
 policy engine to design effective cache management strategies for a new service
 and domain. In this section, we compare and contrast the policies examined for
 file system metadata load balancing in~\cite{sevilla:sc15-mantle} with the ones
-designed for cache management in ParSplice. The similarities show how the
-``when"/``where"/``how much" abstractions, data management language, and policy
-engine may be widely applicable to other data management techniques, such as
-QoS, scheduling, and batching.
+we designed and evaluated above for cache management in ParSplice. The
+similarities show how the ``when"/``where"/``how much" abstractions, data
+management language, and policy engine may be widely applicable to other data
+management techniques, such as QoS, scheduling, and batching.
 
 \subsection{Using Load Balancing Policies for Cache Management}
 
@@ -111,21 +111,22 @@ policy-switching conditions.
 %- affects LB; tells us which part of the cache to keep local
 
 % Load balancing in FSs
-Mantle was designed for file system metadata load balancing across a cluster of
-dedicated metadata servers, where spreading requests across servers improves
-performance. But another technique to reduce request load is caching. If
-clients and servers maintain a consistent cache, the client can do operations
-locally without contacting the metadata server.  The caches in CephFS have the
-same performance and utilization trade-off as ParSplice, where large caches
-improve performance at the expense of a higher memory footprint. High memory
-utilization is problematic when a single metadata server maintains consistent
-caches with many clients.  Using cache management policies from the previous
-two sections has two benefits for load balancing: (1) increases the capacity of
-a single metadata server, and (2) helps identify which parts of the cache to
-keep local to a server. For example, applying the key access pattern
-detection algorithm from Section~\S\ref{sec:regime-detection} to a similar file
-system access pattern has the potential to identify when to migrate keys and
-how many keys to migrate.
+The abstractions in Mantle were designed for file system metadata load
+balancing across a cluster of dedicated metadata servers, where spreading
+requests across servers improves performance. But another technique to reduce
+request load is caching. If clients and servers maintain a consistent cache,
+the client can do operations locally without contacting the metadata server.
+The caches in CephFS have the same performance and utilization trade-off as
+ParSplice, where large caches improve performance at the expense of a higher
+memory footprint. High memory utilization is problematic when a single metadata
+server maintains consistent caches with many clients.  Using cache management
+policies from the previous two sections has two benefits for load balancing:
+(1) increases the capacity of a single metadata server, and (2) helps identify
+which parts of the cache to keep local to a server. For example, applying the
+key access pattern detection algorithm from
+Section~\S\ref{sec:regime-detection} to a similar file system access pattern
+has the potential to identify when to migrate keys and how many keys to
+migrate.
 
 % burstiness of creates then compile
 To explore this example in more detail, consider the trace of metadata requests
@@ -155,19 +156,19 @@ reduce memory pressure without sacrificing performance.
 \end{figure}
 
 % other use cases caches/tiers 
-Ceph has many other data management techniques that would benefit from the
-caching policies developed in Sections~\S\ref{sec:arch-specific}
-and~\ref{sec:dom-specific}. Administrators can use the policies in ParSplice to
-automatically size and manage cache
+Storage systems have many other data management techniques that would benefit
+from the caching policies developed in Sections~\S\ref{sec:arch-specific}
+and~\ref{sec:dom-specific}. For example, Ceph administrators can use the
+policies in ParSplice to automatically size and manage cache
 tiers\footnote{http://docs.ceph.com/docs/master/rados/operations/cache-tiering/},
 caching on object storage devices, or in the distributed block
 devices\footnote{http://docs.ceph.com/docs/master/rbd/rbd-config-ref/}.
 Integration with Mantle would be straightforward as it is merged into Ceph's
 mainline\footnote{http://docs.ceph.com/docs/master/cephfs/mantle/} and the
-three caching subsystems mentioned above already maintain key access
-traces. We hypothesize that since this is all software defined caching,
-something more clever than LRU would improve cache utilization without
-sacrificing too much performance.
+three caching subsystems mentioned above already maintain key access traces. We
+hypothesize that since this is all software defined caching, something more
+clever than LRU would improve cache utilization without sacrificing too much
+performance.
 
 \subsection{Other Use Cases}
 % we said this is good for LB/Cache management... what about others??
