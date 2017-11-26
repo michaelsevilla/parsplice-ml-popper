@@ -78,28 +78,30 @@ per 300 worker processes, large simulations will not scale.  Users can
 configure ParSplice to evict data when the cache reaches a threshold but this
 solution requires tuning and parameter sweeps; the ``Cache (too small)" curve
 in Figure~\ref{fig:cache-management} shows how a poorly configured cache can
-save memory but at the expense of performance.  Even worse, this threshold
-changes with different initial configurations and clusters so tuning needs to
-be done for all system permutations.  Our dynamically sized cache, shown by the
-think line in Figure~\ref{fig:cache-management}, detects key access patterns
-and re-sizes the cache accordingly.  Without tuning or parameter sweeps, our
-solution saves more memory than a hand-tuned cache with a negligible
-performance degradation (within the baseline's standard deviation) and works
-for a variety of initial conditions.
+save memory but at the expense of performance, which is shown by the
+annotation.  Even worse, this threshold changes with different initial
+configurations and clusters so tuning needs to be done for all system
+permutations.  Our dynamically sized cache, shown by the think line in
+Figure~\ref{fig:cache-management}, detects key access patterns and re-sizes the
+cache accordingly.  Without tuning or parameter sweeps, our solution saves more
+memory than a hand-tuned cache with a negligible performance degradation
+(within the baseline's standard deviation) and works for a variety of initial
+conditions.
 
 % What is Mantle
 To design more flexible cache management policies, like our solution in
 Figure~\ref{fig:cache-management}, we use the data management language and
-policy engine from the Mantle paper~\cite{sevilla:sc15-mantle}.  Mantle was
-originally touted as a programmable file system metadata load balancer, but we
-realize now that the collection of abstractions was a control plane that
-improved metadata access. So in this paper we refer to Mantle as a policy
-engine that injects policies written in our data management language directly
-into a running service, such as a file system or key-value store.  Rather than
-co-designing a policy directly into the service, which requires domain-specific
-knowledge to find and change policies, we expose the policies in a general way
-so even developers unfamiliar with the domain can deploy quickly deploy solutions.
-We show that our framework:
+policy engine from the Mantle paper~\cite{sevilla:sc15-mantle}.  While Mantle
+was designed for the narrow purpose of filesystem metadata load balancing, this
+paper provides evidence that the approach is more broad.  Specifically, the
+collection of abstractions in Mantle provides a general control plane that
+improves the performance of metadata access. So in this paper we refer to
+Mantle as a policy engine that injects policies written in our data management
+language directly into a running service, such as a file system or key-value
+store.  Rather than co-designing a policy directly into the service, which
+requires domain-specific knowledge to find and change policies, we expose the
+policies in a general way so even developers unfamiliar with the domain can
+deploy quickly deploy solutions.  We show that our framework:
 
 \begin{itemize}
 

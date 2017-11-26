@@ -104,6 +104,12 @@ data management state.  ParSplice trims its cache once it eclipses the
 two iterations. The persistent state is essential for both of these
 policy-switching conditions.
 
+These similarities among effective policies for two very different domains
+suggests that the heuristics and techniques in other load balancers can be used
+for cache management. This generalization may reduce the work that needs to be
+done for cache management as ideas may have already been explored and could
+work ``out-of-the-box". 
+
 \subsection{Using Cache Management Policies for Load Balancing}
 
 %- how many inodes to keep in mds/client caches
