@@ -166,7 +166,8 @@ we should use for different job permutations.
 
 \begin{figure*}[t!]
     \begin{subfigure}[t]{0.32\textwidth}
-	\includegraphics[width=0.9\textwidth]{figures/keyspace-zoomed.png}\\
+        \centering
+	\includegraphics[width=0.89\textwidth]{figures/keyspace-zoomed.png}\\
 \caption{Key activity for a 4 hour run shows groups of accesses to the same
 subset of keys. Detecting these access patterns leads to a more accurate cache
 management strategy, which is discussed in
@@ -174,6 +175,7 @@ Section~\S\ref{sec:regime-detection}.\label{fig:keyspace-zoomed}}
     \end{subfigure}%
     ~ 
     \begin{subfigure}[t]{0.32\textwidth}
+        \centering
         \includegraphics[width=1\textwidth]{figures/memory-vs-time.png}\\
 	\caption{Memory utilization for ``No Cache Management" (unlimited cache
 growth), ``Multi-Policy" (absorbs initial burstiness of workload) , and
@@ -182,7 +184,8 @@ growth), ``Multi-Policy" (absorbs initial burstiness of workload) , and
     \end{subfigure}%
     ~
     \begin{subfigure}[t]{0.32\textwidth}
-        \includegraphics[width=1\textwidth]{figures/dscache-vs-none.png}\\
+        \centering
+        \includegraphics[width=0.86\textwidth]{figures/dscache-vs-none.png}\\
 	\caption{Performance/Utilization for dynamically sized cache (DSCache)
 policy. With negligible performance degradation, DSCache adjusts to different
 \(\Delta\)s over 2\(\times\) memory in the best case.
@@ -320,10 +323,13 @@ Figure~\ref{fig:dscache-vs-none}. Without sacrificing performance (trajectory
 length), the dynamically sized cache policy uses between 32\%-66\% less memory
 than the default ParSplice configuration (no cache management) for the 3
 initial conditions we test. The memory usage is shown by the ``Dynamic Policy"
-curves in Figure~\ref{fig:memory-vs-time}, where the behavior mirrors the key
-access patterns in Figure~\ref{fig:keyspace-zoomed}. We also show a
-\(\Delta_2\) growth rate to demonstrate the dynamic policy's ability to adjust
-to a different set of initial conditions.
+curves in Figure~\ref{fig:memory-vs-time}, where the behavior resembles the key
+access patterns in Figure~\ref{fig:keyspace-zoomed}\footnote{The memory usage
+is not {\it exactly} the same because these are two different runs;
+Figure~\ref{fig:keyspace-zoomed} has key activity tracing turned on, which
+reduces performance.}.  We also show a \(\Delta_2\) growth rate to demonstrate
+the dynamic policy's ability to adjust to a different set of initial
+conditions.
 
 \begin{figure}[h]
 \footnotesize
