@@ -60,10 +60,11 @@ end
 %\end{itemize}
 
 In the previous section, we used our data management language and the Mantle
-policy engine to design effective cache management strategies for a new service
-and domain. In this section, we compare and contrast the policies examined for
-file system metadata load balancing in~\cite{sevilla:sc15-mantle} with the ones
-we designed and evaluated above for cache management in ParSplice. 
+policy engine to design effective cache management strategies for a new
+application and storage system. In this section, we compare and contrast the
+policies examined for file system metadata load balancing
+in~\cite{sevilla:sc15-mantle} with the ones we designed and evaluated above for
+cache management in ParSplice. 
 
 \subsection{Using Load Balancing Policies for Cache Management}
 
@@ -123,27 +124,30 @@ management policy from Section~\S\ref{sec:dom-specific}.
 
 The cache management policies we developed earlier can be used by load
 balancing policies to effectively spread load across a cluster. For example,
-many distributed file systems spread the hierarchical namespace across a
-dedicated metadata cluster and caching policies could be used to determine what
-metadata to move and when to move it. To demonstrate this idea, consider
-Figure~\ref{fig:trace-atime}, where the dots are the file system metadata reads
-in a 1 hour window of a 3-day Lustre namespace trace and the vertical lines are
-the groups of accesses detected by our policy from
-Section~\S\ref{sec:regime-detection}.  The \(x\) axis is time and the \(y\)
-axis is the file ID, where the file IDs are listed in the order that they
-appear in the trace.  
+distributed file systems that load balance file system metadata across a
+dedicated metadata cluster could use the caching policies to determine what
+metadata to move and when to move it.  To demonstrate this idea, we analyze a
+3-day Lustre file system metadata trace, collected at LANL.  The trace is
+anonymized so all file names are replaced with a unique identifier and we do
+not know which applications are running. We visualize a 1 hour window of the
+trace in Figure~\ref{fig:trace-atime}, where the dots are the file system
+metadata reads in a 1 hour window.  The \(x\) axis is time and the \(y\) axis
+is the file ID, listed in the order that file IDs appear in the trace.  The
+groups of accesses look similar to the ParSplice key accesses in
+Figure~\ref{fig:keyspace-zoomed}. 
 
-The trace is anonymized so all file names are replaced with a unique identifier
-and we do not know what clients are doing.  Although other access pattern
-detection algorithms are possible, we use the one designed for cache management
-in Section~\S\ref{sec:regime-detection} with slight modifications based on our
-knowledge of file systems~\footnote{We filtered requests key ids less than
-2000, as these are most likely path traversal requests to higher parts of the
-namespace, {\it i.e.} root directories.} and it successfully detects the
-largest group of key accesses that starts at time 1000 seconds and ends at time
-2200 seconds. File systems that load balance file system metadata across a
-cluster would want to keep metadata in that group of key accesses on the same
-server to reduce RPCs.
+Although other access pattern detection algorithms are possible, we use the one
+designed for cache management in Section~\S\ref{sec:regime-detection} with
+slight modifications based on our knowledge of file systems\footnote{We
+filtered out requests for key IDs less than 2000, as these are most likely path
+traversal requests to higher parts of the namespace.}. The vertical lines in
+Figure~\ref{fig:trace-atime} are the groups of accesses identified by the
+algorithm; it successfully detects the largest group of key accesses that
+starts at time 1000 seconds and ends at time 2200 seconds. File systems that
+load balance file system metadata across a cluster would want to keep metadata
+in that group of key accesses on the same server for locality and would want to
+avoid migrating metadata to a different server until the group of key accesses
+completes.
 
 %% burstiness of creates then compile
 %Cache management can also increase the capacity of a single server, which
@@ -189,10 +193,7 @@ caching on object storage devices, or in the distributed block
 devices\footnote{http://docs.ceph.com/docs/master/rbd/rbd-config-ref/}.
 Integration with Mantle would be straightforward as it is merged into Ceph's
 mainline\footnote{http://docs.ceph.com/docs/master/cephfs/mantle/} and the
-three caching subsystems mentioned above already maintain key access traces. We
-hypothesize that since this is all software defined caching, something more
-clever than LRU would improve cache utilization without sacrificing too much
-performance.
+three caching subsystems mentioned above already maintain key access traces. 
 
 More generally, the similarities between load balancing and cache management
 show how the ``when"/``where"/``how much" abstractions, data management

@@ -9,7 +9,7 @@ variety of techniques, ranging from basic algorithms and heuristics to
 statistical models, calculus, and machine learning. While Mantle was originally
 designed for distributed file systems, we show how the collection of
 abstractions effectively decomposes the problem into manageable policies for a
-different domain and service.  Our exploration of this space results in a
+different application and storage system.  Our exploration of this space results in a
 dynamically sized cache policy that sacrifices negligible performance while
 using 32-66\% less memory than the default ParSplice configuration.
 
@@ -32,12 +32,6 @@ variety of caching policies using our data management language/policy engine and
 arrive at a customized policy that works well for our target application.  This
 process of trying general policies and quickly iterating to a customized
 solution shows that our prototype can be adapted to different workloads.
-
-%very customized solution confirms that our prototype can adapt to different
-%types of workloads; but more importantly, this is the second system and domain
-%that we have successfully used this policy language and engine in. This breadth
-%helps us reason about more general data management policies by giving us a
-%framework to compare and contrast policies from other domains and services.
 
 Our example application, ParSplice~\cite{perez:jctc20150parsplice}, is
 representative of an important class applications with similar working set
@@ -98,14 +92,13 @@ this paper provides evidence that the approach is more broad.  Specifically,
 the collection of abstractions in Mantle provide a general control plane that
 improves the performance of metadata access. So in this paper we refer to
 Mantle as a policy engine that injects policies written in our data management
-language directly into a running service, such as a file system or key-value
-store.  Rather than co-designing a policy directly into the service, which
-requires (1) domain-specific knowledge about the application to design an
-effective policy and (2) service-specific knowledge to find and change
-policies, we separate policies from mechanisms in a general way. By exposing
-these policies (and not the mechanism) developers unfamiliar with the service
-that their application uses can quickly deploy solutions based on their
-domain-specific knowledge.  We show that our framework:
+language directly into a running storage system, such as a file system or key-value
+store.  Rather than implementing a policy directly into the storage system,
+which requires domain-specific knowledge to find and change policies in the
+storage system, we separate policies from mechanisms in a general way.  By
+exposing just the policies developers unfamiliar with the storage system that
+their application uses can quickly deploy efficient solutions based on their
+application-specific knowledge.  We show that our framework:
 
 \begin{itemize}
 

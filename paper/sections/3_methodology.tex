@@ -22,19 +22,16 @@ will be used determine which key-value pairs should be moved to which node.
 \subsection{Extracting Mantle as a Library}
 \label{sec:extracting}
 
-%  \item motivation: Mochi load balancer microservice
-%  \item library architecture, callbacks, environment
-
 We extracted Mantle as a library and Figure~\ref{fig:mantle} shows how it is
-linked into a service.  Administrators write policies in Lua from whatever
+linked into a storage system.  Administrators write policies in Lua from whatever
 domain they choose ({\it e.g.}, statistics, machine learning, storage system)
 and the policies are embedded into the runtime by Mantle.  We chose Lua for
 simplicity, performance, and portability; it is a scripting language with
 simple syntax, which allows administrators to focus on the policies themselves;
 it was designed as an embeddable language, so it is lightweight and does less
-type checking; and it interfaces nicely with C/C++.  When the service makes
+type checking; and it interfaces nicely with C/C++.  When the storage system makes
 decisions it executes the administrator-defined policies for when/where/how
-much and returns a decision.  To do this, the service needs to be modified to
+much and returns a decision.  To do this, the storage system needs to be modified to
 (1) provide an environment of metrics and (2) identify where policies are set.
 These modification points are shown by the colored boxes in
 Figure~\ref{fig:mantle} and described below.
@@ -55,30 +52,30 @@ Figure~\ref{fig:mantle} and described below.
   Time Series & [(ts, val), ..., (ts, val)]
               & accesses by timestamp (ts) \\
   && \\
-              & Service      & Example \\\hline
+              & Storage System & Example \\\hline
   Cluster     & File Systems & CPU util., Inode reads \\
               & ParSplice    & CPU util., Cache size \\
   Time Series & File Systems & Accesses to directory \\
               & ParSplice    & Accesses to key in DB\\
   \end{tabular}
-  \caption{Types of metrics exposed by the service to the policy engine using Mantle.\label{table:metrics}}
+  \caption{Types of metrics exposed by the storage system to the policy engine using Mantle.\label{table:metrics}}
 \end{table}
 
-\subsubsection{Environment of Metrics} services expose \textbf{cluster} metrics
+\subsubsection{Environment of Metrics} storage systems expose \textbf{cluster} metrics
 for describing resource utilization and \textbf{time series} metrics for
 describing accesses to some data structure over time. Table~\ref{table:metrics}
 shows how these metrics are accessed from the policies written by
 administrators. 
 
-For cluster metrics, the service passes a dictionary to Mantle. Policies access
+For cluster metrics, the storage system passes a dictionary to Mantle. Policies access
 the cluster metric values by indexing into a Lua table using \texttt{server}
 and \texttt{metric}, where server is a node identifier ({\it e.g.}, MPI Rank,
 metadata server name) and metric is a resource name.  Metrics used for file
 system metadata load balancing are shown by the ``environment" box in
 Figure~\ref{fig:mantle}. The measurements and exchange of metrics between
-servers is done by the service; Mantle in CephFS leverages metrics from other
+servers is done by the storage system; Mantle in CephFS leverages metrics from other
 servers collected using CephFS's heartbeats.  For example, a policy written for
-an MPI-based service can access the CPU utilization of the first rank in a
+an MPI-based storage system can access the CPU utilization of the first rank in a
 communication group using:
 
 \begin{figure}[h]
@@ -88,9 +85,9 @@ load = servers[0]['cpu']
 \end{minted}
 \end{figure}
 
-For time series metrics, the service passes an array of \texttt{(timestamp,
+For time series metrics, the storage system passes an array of \texttt{(timestamp,
 value)} pairs to Mantle and the policies can iterate over the accesses.  The
-service uses a pointer to the time series to facilitate time series with many
+storage system uses a pointer to the time series to facilitate time series with many
 values, like accesses to a database or directory in the file system namespace.
 This decision limits the time series metrics to only include values from the
 {\it current } node, although this is not a limitation of Mantle itself.  For
@@ -100,7 +97,7 @@ metric for load collects that information using:
 \begin{figure}[h]
 \footnotesize
 \begin{minted}{lua}
-d = timeseries()       -- get data (d) from service
+d = timeseries()       -- data (d) from storage system
 for i=1,d:size() do    -- iterate over timeseries
   ts, value = d:get(i) -- index into timeseries 
   if value == 'mydirectory' then

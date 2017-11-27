@@ -9,7 +9,7 @@
 %
 %How Much: cache policy from past, regime detection, Belady's Min
 
-\section{Cache Management Using System Architecture Knowledge}
+\section{Cache Management Using Storage System Architecture Knowledge}
 \label{sec:arch-specific}
 
 Using the Mantle policy engine, we test a variety of cache management tools and
@@ -32,7 +32,7 @@ The results for different cache sizes for a growth rate of \(\Delta_1\) over a
 Figure~\ref{fig:methodology-tradeoff}.  ``Baseline" is the performance of
 unmodified ParSplice  measured in trajectory duration (\(y\) axis) and
 utilization is measured with memory footprint of just the cache (\(y2\) axis).
-The middle graph labeled "Fixed Cache Size" shares the \(y\) axis and shows the
+The middle graph labeled ``Fixed Cache Size" shares the \(y\) axis and shows the
 trade-off of using a basic LRU-style cache for different cache sizes, where the
 penalty for a cache miss is retrieving the data from the persistent database.
 We evict keys (if necessary) at every operation instead of when segments
@@ -144,22 +144,20 @@ memory footprint is the value at the end of 2.5 hours.  For (1), the trajectory
 length vs.  wall-clock time curves down over time; as the nanoparticle grows it
 takes longer to generate segments so by the time we reach 2 hours, over 90\% of
 the trajectory is already generated.  For (2), the memory footprint rises until
-we reach 100K key switch threshold at 0.4GB, as shown by the ``\(\Delta_1\),
-Multi-Policy" curve in Figure~\ref{fig:memory-vs-time} but in
-Figure~\ref{fig:methodology-tradeoff} we plot the final value. As a result, we
-conclude that this policy only works well for this 2.5 hour run.
+it reaches the 100K key switch threshold at 0.4GB and then reduces to the final
+value after switching policies. The memory usage over time for this policy is
+shown by the ``\(\Delta_1\), Multi-Policy" curve in
+Figure~\ref{fig:memory-vs-time} but in Figure~\ref{fig:methodology-tradeoff} we
+plot the final value.  Despite these caveats, the result is still valid: we
+found a multi-policy cache management strategy that absorbs the cost of a high
+read throughput on a small keyspace and reduces the memory pressure for a 2.5
+hour run. Our experiments show the effectiveness of the policy engine we
+integrated into ParSplice, not that we were able to identify the best policy
+for all system setups ({\it i.e.} different ParSplice parameters, number of
+worker tasks, and job lengths).  To solve that problem, we need a way to
+identify what thresholds we should use for different configurations.
 
-% but the result is still valid
-Despite these caveats, the result is still valid: we found a multi-policy cache 
-management strategy that absorbs the cost of a high read throughput on a small
-keyspace and reduces the memory pressure for a 2.5 hour run. Our experiments
-show the effectiveness of the policy engine we integrated into
-ParSplice, not that we were able to identify the best policy for all system
-setups ({\it i.e.} different ParSplice parameters, number of worker tasks, and
-job lengths).  To solve that problem, we need a way to identify what thresholds
-we should use for different configurations.
-
-\section{Cache Management Using Domain-Specific Application Knowledge}
+\section{Cache Management Using Application-Specific Knowledge}
 \label{sec:dom-specific}
 
 \begin{figure*}[t!]
@@ -172,7 +170,7 @@ management strategy, which is discussed in
 Section~\S\ref{sec:regime-detection}.\label{fig:keyspace-zoomed}}
     \end{subfigure}%
     ~ 
-    \begin{subfigure}[t]{0.5\textwidth}
+    \begin{subfigure}[t]{0.48\textwidth}
         \centering
         \includegraphics[width=1\textwidth]{figures/dscache-vs-none.png}\\
 	\caption{Performance/Utilization for dynamically sized cache (DSCache)
@@ -213,8 +211,8 @@ policy. With negligible performance degradation, DSCache adjusts to different
 %to adjust to a different set of initial conditions.\label{fig:memory-vs-time}}
 %\end{figure}
 
-Feeding domain-specific knowledge about the ParSplice application into a policy
-leads to more a accurate cache management strategy.  The goal of the following
+Feeding application-specific knowledge about the ParSplice application into a policy
+leads to a more accurate cache management strategy.  The goal of the following
 sections is not to find an optimal solution, as this can be done with parameter
 sweeps for thresholds; rather, we try to find techniques that work for a range
 of inputs and system setups.
