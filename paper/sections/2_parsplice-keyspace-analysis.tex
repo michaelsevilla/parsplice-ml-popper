@@ -131,12 +131,7 @@ and disable hyper-threading because we experience unacceptable variability in
 performance. For the rest of the experiments, we use 8 nodes, 1 splicer, 1
 persistent database, 1 cache process, 1 worker, and up to 256 tasks.  The
 keyspace analysis that follows is for the cache on the worker node, which is
-circled in Figure~\ref{fig:parsplice}.  The cache hierarchy is unmodified but
-for the persistent database node, we replace BerkeleyDB on NFS with LevelDB on
-Lustre. Original ParSplice experiments showed that BerkeleyDB's syncs caused
-reads/writes to bottleneck on the persistent database. We also use Riak's
-customized LevelDB\footnote{https://github.com/basho/leveldb} version, which
-comes instrumented with its own set of performance counters.
+circled in Figure~\ref{fig:parsplice}.  
 
 \begin{figure}[t]
   \noindent\includegraphics[width=0.5\textwidth]{figures/methodology-keyspace.png}\\

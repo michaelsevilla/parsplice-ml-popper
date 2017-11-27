@@ -155,8 +155,15 @@ pattern detection algorithm that uses this metric.
 We link Mantle directly into the worker cache circled in red in
 Figure~\ref{fig:parsplice}. We put the ``when" and ``how much" callbacks
 alongside code that checks for memory pressure. It is executed right before the
-worker processes incoming and outgoing put/get transactions to the cache. As
-stated previously, we do not use the ``where" part of Mantle because we focus
-on a single node, but this part of the API will be used when we move the caches
-and storage nodes to a key-values store back-end that uses key load balancing and
-repartitioning.
+worker processes incoming and outgoing put/get transactions to the cache. We
+only do cache management once every second to avoid maintaining the cache for
+every request. We expected to have to increase this polling interval to
+accommodate more complex policies but even our most complicated policy in
+Section~\S\ref{sec:dom-specific} had a negligible effect on performance when
+executed every second (within the standard deviation for multiple runs when
+compared against a policy that returns immediately). This may be because the
+worker is not overloaded and the bottleneck is somewhere else in the system.
+As stated previously, we do not use the ``where" part of Mantle because we
+focus on a single node, but this part of the API will be used when we move the
+caches and storage nodes to a key-values store back-end that uses key load
+balancing and repartitioning.
