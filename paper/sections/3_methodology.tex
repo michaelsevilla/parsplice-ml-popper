@@ -4,10 +4,10 @@
 To explore software-defined cache management, we use the data management
 language and policy engine presented in~\cite{sevilla:sc15-mantle}. The
 prototype in that paper was called Mantle and it was originally built on CephFS
-so administrators could control file system metadata data management policies.
+so administrators could control file system metadata load balancing policies.
 We now refer to Mantle as a policy engine that supports our data management
 language.  The basic premise is that data management policies can be expressed
-with a simple API consisting of ``when", ``where", and ``how much". ``when"
+with a simple API consisting of ``when", ``where", and ``how much". The ``when" policy
 controls how aggressive or conservative the decisions are; ``where" controls
 how distributed or concentrated the data should be; and ``how much" controls
 the amount of data that should be sent. There is also a ``load" policy that
@@ -26,21 +26,18 @@ will be used determine which key-value pairs should be moved to which node.
 %  \item library architecture, callbacks, environment
 
 We extracted Mantle as a library and Figure~\ref{fig:mantle} shows how it is
-linked into a service.  Administrators write policies from whatever domain they
-choose ({e.g.}, statistics, machine learning, storage system) and the policies
-are embedded into the runtime by Mantle. When the service makes decisions it
-executes the administrator-defined policies for when/where/how much and returns
-a decision.  To do this, the service needs to be modified to (1) provide an
-environment of metrics and (2) identify where policies are set. These
-modification points are shown by the colored boxes in Figure~\ref{fig:mantle}
-and described below.
-
-Administrators write policies in
-Lua that are executed whenever the service needs to make a data management
-decision. We chose Lua for simplicity, performance, and portability; it is a
-scripting language with simple syntax, which allows administrators to focus on
-the policies themselves; it was designed as an embeddable language, so it is
-lightweight and does less type checking; and it interfaces nicely with C/C++.
+linked into a service.  Administrators write policies in Lua from whatever
+domain they choose ({\it e.g.}, statistics, machine learning, storage system)
+and the policies are embedded into the runtime by Mantle.  We chose Lua for
+simplicity, performance, and portability; it is a scripting language with
+simple syntax, which allows administrators to focus on the policies themselves;
+it was designed as an embeddable language, so it is lightweight and does less
+type checking; and it interfaces nicely with C/C++.  When the service makes
+decisions it executes the administrator-defined policies for when/where/how
+much and returns a decision.  To do this, the service needs to be modified to
+(1) provide an environment of metrics and (2) identify where policies are set.
+These modification points are shown by the colored boxes in
+Figure~\ref{fig:mantle} and described below.
 
 \begin{figure}[t]
   \noindent\includegraphics[width=0.5\textwidth]{figures/mantle.png}\\
@@ -67,17 +64,22 @@ lightweight and does less type checking; and it interfaces nicely with C/C++.
   \caption{Types of metrics exposed by the service to the policy engine using Mantle.\label{table:metrics}}
 \end{table}
 
-\subsubsection{Environment of Metrics} services expose cluster metrics for
-describing resource utilization and time series metrics for describing accesses
-to some data structure over time. Table~\ref{table:metrics} shows how these
-metrics are accessed from the policies written by administrators. 
+\subsubsection{Environment of Metrics} services expose \textbf{cluster} metrics
+for describing resource utilization and \textbf{time series} metrics for
+describing accesses to some data structure over time. Table~\ref{table:metrics}
+shows how these metrics are accessed from the policies written by
+administrators. 
 
-For cluster metrics, the service passes a dictionary to Mantle, indexed by
-server name and metric. Policies access the cluster metric values by indexing
-into a Lua table using \texttt{server} and \texttt{metric}, where server is a
-node identifier ({e.g.}, MPI Rank, metadata server name) and metric is a
-resource name.  For example, a policy written for an MPI-based service can
-access the CPU utilization of the first rank in a communication group using:
+For cluster metrics, the service passes a dictionary to Mantle. Policies access
+the cluster metric values by indexing into a Lua table using \texttt{server}
+and \texttt{metric}, where server is a node identifier ({\it e.g.}, MPI Rank,
+metadata server name) and metric is a resource name.  Metrics used for file
+system metadata load balancing are shown by the ``environment" box in
+Figure~\ref{fig:mantle}. The measurements and exchange of metrics between
+servers is done by the service; Mantle in CephFS leverages metrics from other
+servers collected using CephFS's heartbeats.  For example, a policy written for
+an MPI-based service can access the CPU utilization of the first rank in a
+communication group using:
 
 \begin{figure}[h]
 \footnotesize
@@ -86,35 +88,27 @@ load = servers[0]['cpu']
 \end{minted}
 \end{figure}
 
-Other examples metrics used for file system metadata load balancing are shown
-by the ``environment" box in Figure~\ref{fig:mantle}. The measurements and
-exchange of metrics between servers is done by the service; Mantle in CephFS
-leverages metrics from other servers collected using CephFS's heartbeats.
-
 For time series metrics, the service passes an array of \texttt{(timestamp,
-value)} pairs to Mantle and the policies can iterate over the accesses. For
+value)} pairs to Mantle and the policies can iterate over the accesses.  The
+service uses a pointer to the time series to facilitate time series with many
+values, like accesses to a database or directory in the file system namespace.
+This decision limits the time series metrics to only include values from the
+{\it current } node, although this is not a limitation of Mantle itself.  For
 example, a policy that uses accesses to a directory in a file system as a
 metric for load collects that information using:
 
 \begin{figure}[h]
 \footnotesize
 \begin{minted}{lua}
-ts = array()
-for i=1,arraysize() do
-  for time,value in string.gmatch(ts, (%w+=%w)) do
-    if value == 'mydirectory' then
-      count = count + 1
-    end
+d = timeseries()       -- get data (d) from service
+for i=1,d:size() do    -- iterate over timeseries
+  ts, value = d:get(i) -- index into timeseries 
+  if value == 'mydirectory' then
+    count = count + 1
   end
 end
 \end{minted}
 \end{figure}
-
-The service uses a pointer to the time series to facilitate time series with
-many values, like accesses to a database or directory in the file system
-namespace. This decision limits the time series metrics to only include values
-from the {\it current } node, although this is not a limitation of Mantle
-itself.
 
 
 
@@ -151,11 +145,11 @@ it had performed that operation in the previous decision.
 % env of metrics
 Using Mantle cluster metrics, we expose cache size, CPU utilization, and memory
 pressure of the worker node to the cache management policies. In
-Section~\S\ref{sec:parsplice-keyspace-analysis} we only end up using the cache
-size although the other metrics proved to be valuable debugging tools. Using
-Mantle time series metrics, we expose accesses to the cache as a list of
-\texttt{timestamp, key} pairs. In Section~\S\ref{sec:dom-specific}, we
-explore a key access pattern detection algorithm that uses this metric.
+Section~\S\ref{sec:arch-specific} we only end up using the cache size although
+the other metrics proved to be valuable debugging tools. Using Mantle time
+series metrics, we expose accesses to the cache as a list of \texttt{timestamp,
+key} pairs. In Section~\S\ref{sec:dom-specific}, we explore a key access
+pattern detection algorithm that uses this metric.
 
 % where policies are made
 We link Mantle directly into the worker cache circled in red in

@@ -14,14 +14,17 @@
 
 Using the Mantle policy engine, we test a variety of cache management tools and
 algorithms on the worker using the keyspace analysis in
-Section~\S\ref{sec:parsplice-keyspace-analysis}.  The evaluation metric is the
-accuracy and runtime of each strategy; the policy should be accurate enough so
-as to sacrifice negligible performance and fast enough to run as often as we
-want to detect key access patterns.  First we sized the cache according to our
-system specific knowledge. By ``system", we mean the hardware and software of
-the storage hierarchy. We look at request rate, unique keys in a sliding
-window, and bandwidth capabilities. For example, we know that LevelDB cannot
-handle high IO request rates.
+Section~\S\ref{sec:parsplice-keyspace-analysis}.  Our evaluation uses the total
+``trajectory length" as the goodness metric. This value is the duration of the
+overall trajectory produced by ParSplice. At ideal efficiency, the trajectory
+length should increase with the square root of the wall-clock time, since the
+wall-clock cost of time-stepping the system by one simulation time unit
+increases in proportion of the total number of atoms.  The policy should avoid
+reducing the trajectory length and be fast enough to run as often as we want to
+detect key access patterns.  First we sized the cache according to our system
+specific knowledge, {\it i.e.} the hardware and software of the storage
+hierarchy such as request rate, unique keys in a sliding window, and bandwidth
+capabilities. 
 
 % technical details
 The results for different cache sizes for a growth rate of \(\Delta_1\) over a
@@ -29,16 +32,32 @@ The results for different cache sizes for a growth rate of \(\Delta_1\) over a
 Figure~\ref{fig:methodology-tradeoff}.  ``Baseline" is the performance of
 unmodified ParSplice  measured in trajectory duration (\(y\) axis) and
 utilization is measured with memory footprint of just the cache (\(y2\) axis).
-The middle graph shares the \(y\) axis and shows the trade-off of using a basic
-LRU-style cache for different cache sizes, where the penalty for a cache miss
-is retrieving the data from the persistent database.  We evict keys (if
-necessary) at every operation instead of when segments complete because the
-cache fills up too quickly otherwise. This is implemented using a ``when"
-policy of \texttt{server[whoami]['cachesize']>n} and a ``how much" policy of
-\texttt{servers[whoami]['cachesize']-n}.  The error bars are the standard
-deviation of 3 runs.  Although the keyspace grows to 150K, a 100K key cache
-achieves 99\% of the performance. Decreasing the cache degrades performance and
-predictability.
+The middle graph labeled "Fixed Cache Size" shares the \(y\) axis and shows the
+trade-off of using a basic LRU-style cache for different cache sizes, where the
+penalty for a cache miss is retrieving the data from the persistent database.
+We evict keys (if necessary) at every operation instead of when segments
+complete because the cache fills up too quickly otherwise. This is implemented
+using a ``when" policy of:
+
+\begin{figure}[h]
+\footnotesize
+\begin{minted}{lua}
+server[whoami]['cachesize']>n
+\end{minted}
+\end{figure}
+
+and a ``how much" policy of:
+
+\begin{figure}[h]
+\footnotesize
+\begin{minted}{lua}
+servers[whoami]['cachesize']-n
+\end{minted}
+\end{figure}
+
+The error bars are the standard deviation of 3 runs.  Although the keyspace
+grows to 150K, a 100K key cache achieves 99\% of the performance. Decreasing
+the cache degrades performance and predictability.
 
 %\begin{figure}[h] \footnotesize \begin{minted}{lua}
 %server[whoami]['cachesize'] > n \end{minted} \end{figure}
@@ -54,13 +73,23 @@ predictability.
 
 \begin{figure}[t]
 \noindent\includegraphics[width=0.5\textwidth]{figures/methodology-tradeoff.png}\\
-\caption{The performance and resource utilization trade-off for different cache
-management policies. ``None" is ParSplice unmodified, ``Fixed Sized Cache"
-limits the size of the cache by evicting the least recently used items, and
-``Multi-Policy Cache" switches to a fixed sized cache after absorbing the
-initial burstiness of the workload.  The size of the fixed sized cache for each
-experiment is on the \(x\) axis.  \label{fig:methodology-tradeoff}}
+\caption{Policy performance/utilization: ``None" is ParSplice unmodified,
+``Fixed Sized Cache" evicts keys using LRU , and ``Multi-Policy Cache" switches
+to fixed sized cache after absorbing the workload's initial burstiness.  Fixed
+sized caches are on the \(x\) axis.\label{fig:methodology-tradeoff}}
 \end{figure}
+
+\begin{figure}[t]
+        \centering
+        \includegraphics[width=0.5\textwidth]{figures/memory-vs-time.png}\\
+	\caption{Memory utilization for ``No Cache Management" (unlimited cache
+growth), ``Multi-Policy" (absorbs initial burstiness of workload) , and
+``Dynamic Policy" (sizes cache according to key access patterns).
+\label{fig:memory-vs-time}}
+\end{figure}%
+ 
+
+
 %
 %\footnotesize \centering \begin{minted}[xleftmargin=3em,linenos]{lua} function
 %when() if server[whoami]['cachesize'] > n then return true end return false
@@ -79,10 +108,10 @@ one time.  It turns out that the unique keys plotted in
 Figure~\ref{fig:motivation-regimes} are per second and are not representative
 of the actual active keyspace; the number of active keys is larger than 100, as
 some keys may be accessed at time \(t_0\), not in \(t_1\), and then again in
-\(t_2\). Because the cache is too small, reads and writes hit the persistent
-database, where the excessive traffic triggers a LevelDB compaction and reads
-block.  To avoid overloading the storage hierarchy with requests, we design a
-multi-part policy that switches between:
+\(t_2\). Because the cache is too small, reads and writes hit rest of the
+storage hierarchy and the excessive traffic triggers a LevelDB compaction on
+the persistent database.  To avoid overloading the storage hierarchy with
+requests, we design a multi-part policy that switches between:
 
 \begin{itemize}
   \item unlimited growth policy: cache increases on every write
@@ -99,12 +128,11 @@ cache down to the threshold.  The actual policy is shown and described in more
 detail in the next section in Figure~\ref{src:lru-dyn}.  The plot on the right
 side of Figure~\ref{fig:methodology-tradeoff} shows the performance/utilization
 trade-off of the multi-part policy, where the cache sizes for the \(n\) key
-limit policy are along the \(x\) axis.  They show better performance than the
-single \(n\) key policies. The performance and memory utilization for a 100K
-key cache size is the same as the 100K bar in the ``Multi-Part Policy" graph in
-Figure~\ref{fig:methodology-tradeoff} but the rest reduce the size of the
-keyspace after the read flash crowd.  We see the worst performance when the
-engine switches to the 10 key limit policy, which achieves 94\% of the
+limit policy are along the \(x\) axis.  The performance and memory utilization
+for a 100K key cache size is the same as the 100K bar in the ``Fixed Cache
+Size" graph in Figure~\ref{fig:methodology-tradeoff} but the rest reduce the
+size of the keyspace after the read flash crowd.  We see the worst performance
+when the engine switches to the 10 key limit policy, which achieves 94\% of the
 performance while only using 40KB of memory. 
 
 % caveats: it is calculating 90% of the trajectory, memory value reported is final
@@ -113,13 +141,13 @@ performance while only using 40KB of memory.
 The results in Figure~\ref{fig:methodology-tradeoff} are slightly deceiving for
 two reasons: (1) segments take longer to generate later in the run and (2) the
 memory footprint is the value at the end of 2.5 hours.  For (1), the trajectory
-length vs.  wall-clock time curves down over time; as the nanoparticle grows
-it takes longer to generate segments so by the time we reach 2 hours, over 90\%
-of the trajectory is already generated.  For (2), the memory footprint rises
-until we reach 100K key switch threshold at 0.4GB, as shown by the
-``\(\Delta_1\), Multi-Policy" curve in Figure~\ref{fig:memory-vs-time} but in
+length vs.  wall-clock time curves down over time; as the nanoparticle grows it
+takes longer to generate segments so by the time we reach 2 hours, over 90\% of
+the trajectory is already generated.  For (2), the memory footprint rises until
+we reach 100K key switch threshold at 0.4GB, as shown by the ``\(\Delta_1\),
+Multi-Policy" curve in Figure~\ref{fig:memory-vs-time} but in
 Figure~\ref{fig:methodology-tradeoff} we plot the final value. As a result, we
-can only conclude that this policy only works well for this 2.5 hour run.
+conclude that this policy only works well for this 2.5 hour run.
 
 % but the result is still valid
 Despite these caveats, the result is still valid: we found a multi-policy cache 
@@ -129,33 +157,24 @@ show the effectiveness of the policy engine we integrated into
 ParSplice, not that we were able to identify the best policy for all system
 setups ({\it i.e.} different ParSplice parameters, number of worker tasks, and
 job lengths).  To solve that problem, we need a way to identify what thresholds
-we should use for different job permutations.
+we should use for different configurations.
 
 \section{Cache Management Using Domain-Specific Application Knowledge}
 \label{sec:dom-specific}
 
 \begin{figure*}[t!]
-    \begin{subfigure}[t]{0.32\textwidth}
+    \begin{subfigure}[t]{0.5\textwidth}
         \centering
-	\includegraphics[width=0.89\textwidth]{figures/keyspace-zoomed.png}\\
+	\includegraphics[width=1\textwidth]{figures/keyspace-zoomed.png}\\
 \caption{Key activity for a 4 hour run shows groups of accesses to the same
 subset of keys. Detecting these access patterns leads to a more accurate cache
 management strategy, which is discussed in
 Section~\S\ref{sec:regime-detection}.\label{fig:keyspace-zoomed}}
     \end{subfigure}%
     ~ 
-    \begin{subfigure}[t]{0.32\textwidth}
+    \begin{subfigure}[t]{0.5\textwidth}
         \centering
-        \includegraphics[width=1\textwidth]{figures/memory-vs-time.png}\\
-	\caption{Memory utilization for ``No Cache Management" (unlimited cache
-growth), ``Multi-Policy" (absorbs initial burstiness of workload) , and
-``Dynamic Policy" (sizes cache according to key access patterns).
-\label{fig:memory-vs-time}}
-    \end{subfigure}%
-    ~
-    \begin{subfigure}[t]{0.32\textwidth}
-        \centering
-        \includegraphics[width=0.86\textwidth]{figures/dscache-vs-none.png}\\
+        \includegraphics[width=0.9\textwidth]{figures/dscache-vs-none.png}\\
 	\caption{Performance/Utilization for dynamically sized cache (DSCache)
 policy. With negligible performance degradation, DSCache adjusts to different
 \(\Delta\)s over 2\(\times\) memory in the best case.
@@ -209,8 +228,7 @@ trajectories explore the same minima until they can escape to a new set of
 states. This exploration of the same set of states is called a superbasin.  In
 Figure~\ref{fig:keyspace-zoomed}, superbasins are never re-visited because the
 simulation only adds molecules; we can never reach a state with less molecules.
-This is why keys are never re-accessed.  Despite these patterns, the following
-characteristics of superbasins make it hard to detect them:
+This is why keys are never re-accessed.  
 
 Detecting these superbasins can lead to more effective cache management
 strategies because the height of the groups of key accesses is ``how much" of
@@ -219,7 +237,8 @@ evict values from the cache.  The zoomed portion of
 Figure~\ref{fig:keyspace-zoomed} shows how a single superbasin affects the key
 accesses. Moving along the \(x\) axis shows that the number of unique keys
 accessed over time grows while moving along the \(y\) axis shows that early
-keys are accessed more often.
+keys are accessed more often.  Despite these patterns, the following
+characteristics of superbasins make it hard to detect them:
 
 \begin{itemize}
 
@@ -231,8 +250,6 @@ keys are accessed more often.
   \item the number of keys a superbasin accesses differs from other superbasins
 
 \end{itemize}
-
-Below we describe the policies we implemented and deployed using Mantle.
 
 \subsection{Failed Strategies}
 
@@ -252,19 +269,19 @@ evicted.  ``history-of-key-accesses", set to 10 seconds, to evict keys.
   \item Calculus: use derivative to strip away magnitudes; use large positive
 slopes followed by large negative slope as signal for new set of key accesses.
 ``Zero-crossing", set to 40 seconds, for distance between small/large spikes to
-avoid false positives; `window size", set to 200 seconds, for the size of the
-moving average 
+avoid false positives; ``window size", set to 200 seconds, for the size of the
+moving average.
 
   \item K-Means Clustering fails because ``K" is not known {\it a-priori} and
 groups of key accesses are different size. ``K", set to 4, for the number of clusters in the data
-using the sum of the distances to the centroid
+using the sum of the distances to the centroid.
 
   \item DBScan: finds clusters using density as a metric. ``Eps", set to 20, for
 max distance between 2 samples in same neighborhood; ``Min", set to 5, for the
-number of samples per core
+samples per core.
 
   \item Anomaly Detection: size of the image is too big and bottom edges are
-not thick enough
+not thick enough.
 
 \end{itemize}
 
@@ -273,22 +290,21 @@ not thick enough
 
 After trying these techniques we found that the basic algorithm in
 Figure~\ref{src:dyn-cache} works best. The algorithm detects groups of key
-access patterns, which we call ``fans", by iterating backwards through the key
-access trace, finding the lowest key ID, and comparing against the lowest key
-ID we have seen so far (Line 7). We also maintain the top and bottom of each
-group of key accesses (Line 13) so we can tell the ``how much" policy the
-number of keys to evict (Line 19).  The algorithm iterates backwards over the
-key access trace because a change in the minimum value signals a new group of
-key accesses. No signal exists iterating left to right, as the maximum value
-always increases and the minimum values at the bottom of each group of key
-accesses are sparse.  For example, the maximum distance between values along
-the bottom edge of the zoomed group of key accesses in
-Figure~\ref{fig:keyspace-zoomed} is 125 seconds, while the maximum distance
-between minimum values for the group of key accesses before is 0 seconds. As a
-result of this sparseness, iterating left to right requires a ``window size"
-parameter to determine when we think a minimum value will not show up again.
-We exchange runtime, in the form of an O(\(n\)) algorithm where \(n\) is the
-number events, for simplicity because this approach avoids adding new
+accesses, which we call ``fans", by iterating backwards through the key access
+trace, finding the lowest key ID, and comparing against the lowest key ID we
+have seen so far (Line 7). We also maintain the top and bottom of each group of
+key accesses (Line 13) so we can tell the ``how much" policy the number of keys
+to evict (Line 19).  The algorithm iterates backwards over the key access trace
+because a change in the minimum value signals a new group of key accesses. No
+signal exists iterating left to right, as the maximum value always increases
+and the minimum values at the bottom of each group of key accesses are sparse.
+For example, the maximum distance between values along the bottom edge of the
+zoomed group of key accesses in Figure~\ref{fig:keyspace-zoomed} is 125
+seconds, while the maximum distance between minimum values for the group of key
+accesses before is 0 seconds. As a result of this sparseness, iterating left to
+right requires a ``window size" parameter to determine when we think a minimum
+value will not show up again.  The algorithm is O(\(n\)), where \(n\) is the
+number events, but the benefit is that the approach avoids adding new
 thresholds for key access pattern detection ({\it e.g.}, space between key
 accesses, space between key IDs, and window size of consecutive key accesses).
 
@@ -308,30 +324,34 @@ conditions.
 \begin{figure}[h]
 \footnotesize
 \begin{minted}[xleftmargin=3em,linenos]{lua}
-d = timeseries()          -- provided by mantle
-ts, id = d:get(d:size())  -- provided by mantle
-fan  = {start=nil, finish=ts, top=0, bottom=id}
+d = timeseries()
+ts, id = d:get(d:size())
+fan  = {start=nil, finish=ts, top=0, bot=id}
 fans = {}
-for i=d:size(),1,-1 do    -- detect all fans
+for i=d:size(),1,-1 do     -- iterate backwards
   ts, id = d:get(i)
-  if id < fan['bottom'] then
+  if id < fan['bot'] then  -- found a new fan!
     fan['start']  = ts
     fans[#fans+1] = fan 
-    fan = {start=nil, finish=ts, top=0, bottom=id}
+    fan = {start=nil, finish=ts, top=0, bot=id}
   end 
 
-  if id > fan['top'] then fan['top'] = id end 
+  if id > fan['top'] then  -- track top of fan
+    fan['top'] = id 
+  end 
 end
 fan['start'] = 0 
 fans[#fans+1] = fan 
 
-if #fans < 2 then return false else
-  WRstate(fans[#fans-1]['top']-fans[1]['bottom'])
+if #fans < 2 then -- do not evict current fan
+  return false 
+else
+  WRstate(fans[#fans-1]['top']-fans[1]['bot'])
   return true
 end
 \end{minted}
 \caption{The dynamically sized cache policy, whose performance is shown in 
 Figure~\ref{fig:cache-management}, iterates backwards over timestamp-key pairs
 and detects when key accesses move on to a new subset of
-keys. We refer to groups of key accesses as ``fans".\label{src:dyn-cache}}
+keys ({\it i.e.} ``fans"). \label{src:dyn-cache}}
 \end{figure}

@@ -84,10 +84,9 @@ to parallelize individual workers.  The workers are stateless and read initial
 coordinates from the data store each time they begin generating segments. Since
 worker tasks do not maintain their own history, they can end up reading the
 same coordinates repeatedly. To mitigate the consequences of these repeated
-reads, ParSplice provisions a hierarchy of processes to act as caches that sit
-in front of a single persistent database.  Values are written to each tier and
-reads traverse up the hierarchy until they find the data.  Caches also reside
-on the workers to service reads/writes from its tasks.  
+reads, ParSplice provisions a hierarchy of caches that sit in front of a single
+persistent database.  Values are written to each tier and reads traverse up the
+hierarchy until they find the data.  
 
 We use ParSplice to simulate the evolution of metallic nanoparticles that grow
 from the vapor phase.  This simulation stresses the storage hierarchy more than
@@ -105,12 +104,6 @@ trajectory can jump from state to state; higher temperatures lead to more
 frequent transitions but temperatures that are too high result in meaningless
 simulations because trajectories have so much energy that they are equally
 likely to visit any random state. 
-
-Our evaluation uses the total ``trajectory length" as the goodness metric. This
-value is the duration of the overall trajectory produced by ParSplice. At
-ideal efficiency, the trajectory length should increase with the square root of
-the wall-clock time, since the wall-clock cost of time-stepping the system by
-one simulation time unit increases in proportion of the total number of atoms.
 
 \subsection{Results and Conclusions}
 \label{sec:parsplice-keyspace-analysis}
@@ -177,7 +170,7 @@ capacity is relatively modest the memory usage scales linearly with the number
 of tasks. This is a problem if we want to scale to Trinitite's 3000 cores.
 Furthermore, the size of the keyspace also increases linearly with the length
 of the run.  Extrapolating these results puts an 8 hour run across all 100
-Trinitite nodes at 20GB for the cache.  This memory utilization easily eclipses
+Trinitite nodes at 8GB for one cache.  This memory utilization easily eclipses
 the 3\% memory usage per node threshold we set earlier, even without factoring
 in the usage from other workers.
 
@@ -190,15 +183,15 @@ the read request rate (\(y1\) axis) and the dots along the bottom are the
 number of unique keys accessed (\(y2\) axis).  The \(\Delta_1\) growth rate
 adds atoms every 100K microseconds while the \(\Delta_2\) growth rate adds
 atoms every 1 million microseconds. So \(\Delta_2\) has a smaller growth rate
-resulting in hotter keys (line on \(y1\) axis) and a smaller keyspace (dots on
-the \(y2\) axis).  Values smaller than \(\Delta_2\)'s growth rate or a
-temperature of 400 degrees results in very little database activity because
-state transitions take too long. Similarly, values larger than \(\Delta_1\)'s
-growth rate or a temperature of 4000 degrees result in an equally meaningless
-simulation as transitions are unrealistic.  This figure demonstrates that small
-changes to \(\Delta\) can have a strong effect on the timing and frequency with
-which new EOM minima are discovered and referenced. This finding suggests that
-we need a flexible policy language and engine to explore these trade-offs.
+resulting in hotter keys and a smaller keyspace.  Values smaller than
+\(\Delta_2\)'s growth rate or a temperature of 400 degrees results in very
+little database activity because state transitions take too long. Similarly,
+values larger than \(\Delta_1\)'s growth rate or a temperature of 4000 degrees
+result in an equally meaningless simulation as transitions are unrealistic.
+This figure demonstrates that small changes to \(\Delta\) can have a strong
+effect on the timing and frequency with which new EOM minima are discovered and
+referenced. This finding suggests that we need a flexible policy language and
+engine to explore these trade-offs.
 
 The bars in Figure~\ref{fig:methodology-keyspace} show \(50-100\times\) as many
 reads (\texttt{get()}) as writes (\texttt{put()}).  Worker tasks read the same
@@ -218,15 +211,14 @@ imbalance for the two growth rates in Figure~\ref{fig:motivation-regimes} are
 shown in Figure~\ref{fig:methodology-keys}, where reads are plotted for each
 unique state, or key, along the \(x\) axis. Keys are more popular than others
 (up to \(5\times\)) because worker tasks start generating states with different
-coordinates later in the run.  The growth rate, temperature, and number of
-workers have a predictable effect on the structure of the keyspace.
-Figure~\ref{fig:methodology-keys} shows that the number of reads changes with
-different initial conditions (\(\Delta\)), but that the spatial locality of key
-accesses is similar ({\it e.g.}, some keys are still \(5\times\) more popular
-than others).  Figure~\ref{fig:motivation-regimes} shows how entropy for
-different growth rates has temporal locality, as the reads per second for
-\(\Delta_2\) look like the reads per second for \(\Delta_1\) stretched out
-along the time axis.  Trends also exist for temperature and number of workers
-but are omitted here for space. This structure means that we can learn the key
-access patterns and adapt the storage system accordingly (this motivates
+coordinates later in the run.  Figure~\ref{fig:methodology-keys} shows that the
+number of reads changes with different initial conditions (\(\Delta\)), but
+that the spatial locality of key accesses is similar ({\it e.g.}, some keys are
+still \(5\times\) more popular than others).
+Figure~\ref{fig:motivation-regimes} shows how entropy for different growth
+rates has temporal locality, as the reads per second for \(\Delta_2\) look like
+the reads per second for \(\Delta_1\) stretched out along the time axis.
+Trends also exist for temperature and number of workers but are omitted here
+for space. This structure means that we can learn the key access patterns and
+adapt the storage system accordingly (this motivates
 Section~\S\ref{sec:dom-specific}).

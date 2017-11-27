@@ -131,46 +131,51 @@ in a 1 hour window of a 3-day Lustre namespace trace and the vertical lines are
 the groups of accesses detected by our policy from
 Section~\S\ref{sec:regime-detection}.  The \(x\) axis is time and the \(y\)
 axis is the file ID, where the file IDs are listed in the order that they
-appear in the trace.  The trace is anonymized so all file names are replaced
-with a unique identifier and we do not know what clients are doing.  Although
-other access pattern detection algorithms are possible, we use the one designed
-for cache management in Section~\S\ref{sec:regime-detection} without
-modification and it successfully detects the largest group of key accesses that
-starts at time 1000 seconds and ends at time 2200 seconds. File systems that
-load balance file system metadata across a cluster would want to keep metadata
-in that group of key accesses on the same server to reduce RPCs.
+appear in the trace.  
 
-% burstiness of creates then compile
-Cache management can also increase the capacity of a single server, which
-affects how load should be distributed across a cluster.  For example, CephFS
-clients and servers maintain a consistent cache so that the client can do
-operations locally without contacting the metadata server.  But large caches
-use more memory, so having smart policies that detect key access patterns would
-greatly reduce memory footprints. For example, Figure~\ref{fig:compile-ops}
-shows the trace of metadata requests for compiling code in CephFS.  The \(y\)
-axis is  the number of file system metadata requests serviced by the metadata
-server when uncompressing (\texttt{untar}), compiling (\texttt{make}), and
-deleting (\texttt{rm}) the source code for the Linux kernel. If the system
-knows that the job phases would progress from many creates, to many lookups, to
-many deletes, then it could size its caches accordingly. For example, the file
-system could cache none of the metadata from the \texttt{untar} phase and run
-key access pattern detection during the \texttt{make} phase, resulting in the
-metadata server/clients only caching metadata that is repeatedly used. For the
-job in Figure~\ref{fig:compile-ops}, this would fill up the cache to only 20K
-inodes (the unit of metadata for file systems) instead of 60K, resulting in
-almost 40MB of memory savings (since an inode is about
-1KB\footnote{http://docs.ceph.com/docs/master/dev/mds\_internals/data-structures/})
-without sacrificing performance.
+The trace is anonymized so all file names are replaced with a unique identifier
+and we do not know what clients are doing.  Although other access pattern
+detection algorithms are possible, we use the one designed for cache management
+in Section~\S\ref{sec:regime-detection} with slight modifications based on our
+knowledge of file systems~\footnote{We filtered requests key ids less than
+2000, as these are most likely path traversal requests to higher parts of the
+namespace, {\it i.e.} root directories.} and it successfully detects the
+largest group of key accesses that starts at time 1000 seconds and ends at time
+2200 seconds. File systems that load balance file system metadata across a
+cluster would want to keep metadata in that group of key accesses on the same
+server to reduce RPCs.
 
-%- strategy: cache all inodes on create
-\begin{figure}[t]
-\noindent\includegraphics[width=0.5\textwidth]{figures/compile-ops.png}\\
-\caption{File system metadata requests for a compile job show workload phases
-characterized by a dominant request type ({\it e.g.}, creates for ``untar").
-Using ParSplice cache management policies for these types of workloads would
-reduce memory pressure without sacrificing performance.
-\label{fig:compile-ops}}
-\end{figure}
+%% burstiness of creates then compile
+%Cache management can also increase the capacity of a single server, which
+%affects how load should be distributed across a cluster.  For example, CephFS
+%clients and servers maintain a consistent cache so that the client can do
+%operations locally without contacting the metadata server.  But large caches
+%use more memory, so having smart policies that detect key access patterns would
+%greatly reduce memory footprints. For example, Figure~\ref{fig:compile-ops}
+%shows the trace of metadata requests for compiling code in CephFS.  The \(y\)
+%axis is  the number of file system metadata requests serviced by the metadata
+%server when uncompressing (\texttt{untar}), compiling (\texttt{make}), and
+%deleting (\texttt{rm}) the source code for the Linux kernel. If the system
+%knows that the job phases would progress from many creates, to many lookups, to
+%many deletes, then it could size its caches accordingly. For example, the file
+%system could cache none of the metadata from the \texttt{untar} phase and run
+%key access pattern detection during the \texttt{make} phase, resulting in the
+%metadata server/clients only caching metadata that is repeatedly used. For the
+%job in Figure~\ref{fig:compile-ops}, this would fill up the cache to only 20K
+%inodes (the unit of metadata for file systems) instead of 60K, resulting in
+%almost 40MB of memory savings (since an inode is about
+%1KB\footnote{http://docs.ceph.com/docs/master/dev/mds\_internals/data-structures/})
+%without sacrificing performance.
+%
+%%- strategy: cache all inodes on create
+%\begin{figure}[t]
+%\noindent\includegraphics[width=0.5\textwidth]{figures/compile-ops.png}\\
+%\caption{File system metadata requests for a compile job show workload phases
+%characterized by a dominant request type ({\it e.g.}, creates for ``untar").
+%Using ParSplice cache management policies for these types of workloads would
+%reduce memory pressure without sacrificing performance.
+%\label{fig:compile-ops}}
+%\end{figure}
 
 \subsection{Other Use Cases}
 
@@ -197,15 +202,24 @@ techniques, such as:
 \begin{itemize}
 
   \item QoS: when to move clients, where to move clients, how much of the
-reservation to move
+reservation to move. We could use Mantle to implement something like the
+reservation algorithms based on utilization and period in
+Fahrrad~\cite{povzner_horizon_2010} to achieve better guarantees without
+sacrificing performance.
 
-  \item Scheduling: how much of a resource to allocate; more than just LRU
-(RAD)
+  \item Scheduling: when to yield computation cycles to another process, how
+much of a resource to allocate. We could use Mantle to implement something like the RBED
+scheduler~\cite{brandt:rtss2003-rad}, that separates resource allocation from
+timing of delivery to enable real-time and non-real-time-scheduling classes. 
 
   \item Batching: how many operations to group together and when to send large
-batches of updates
+batches of updates. We could use Mantle to shape the batching policies in the
+shared resource interface in  Malacology~\cite{sevilla:eurosys17-malacology}. 
 
-  \item Prefetching: how much to prefetch and how to select data to reterive
-(forward/backward/stride detection algorithms for prefetching,
+  \item Prefetching: how much to prefetch and how to select data to retrieve.
+We could use Mantle to implement forward/backward/stride detection algorithms
+for prefetching in RAID arrays or something more complicated, like the time
+series algorithms for adaptive I/O prefetching presented
+in~\cite{tran:sc01-arima}.
 
 \end{itemize}
