@@ -44,19 +44,6 @@ in~\cite{behzad:sc2013-autotuning}.  We cannot drop these techniques into
 ParSplice because the magnitude and speed of the workload hotspots/flash crowds
 makes existing approaches less applicable. 
 
-\section{Future Work}
-
-This lays the foundation for future work, where we will focus on formalizing a
-collection of general data management policies that can be used across domains
-and services. The value of such a collection eases the burden of policy
-development and paves the way for solutions that remove the administrator from
-the development cycle, such as (1) adaptable policies that automatically switch
-to new strategies when the current strategy behaves poorly ({\it e.g.}, thrashing,
-making no progress, etc.), and (2) policy generation, where new policies are
-constructed automatically by examining the collection of existing policies.
-Ultimately, we hope that this automation enables control of policies by
-machines instead of administrators. 
-
 \section{Conclusion}
 
 Data management encompasses a wide range of techniques that vary by domain and
@@ -72,6 +59,14 @@ framework to enable software-defined storage systems to flexibly change
 policies as the workload changes.  We also observe that many of the primitives
 and strategies have enough in common with data management in file systems that
 they both can be expressed with similar semantics and a general policy engine.
-Our prototype lays the groundwork for future work in adaptable policies and
-policy generation, which ushers in an era where policies are controlled by
-machines instead of administrators.
+
+This lays the foundation for future work, where we will focus on formalizing a
+collection of general data management policies that can be used across domains
+and services. The value of such a collection eases the burden of policy
+development and paves the way for solutions that remove the administrator from
+the development cycle, such as (1) adaptable policies that automatically switch
+to new strategies when the current strategy behaves poorly ({\it e.g.}, thrashing,
+making no progress, etc.), and (2) policy generation, where new policies are
+constructed automatically by examining the collection of existing policies.
+Ultimately, we hope that this automation enables control of policies by
+machines instead of administrators. 

@@ -63,10 +63,7 @@ In the previous section, we used our data management language and the Mantle
 policy engine to design effective cache management strategies for a new service
 and domain. In this section, we compare and contrast the policies examined for
 file system metadata load balancing in~\cite{sevilla:sc15-mantle} with the ones
-we designed and evaluated above for cache management in ParSplice. The
-similarities show how the ``when"/``where"/``how much" abstractions, data
-management language, and policy engine may be widely applicable to other data
-management techniques, such as QoS, scheduling, and batching.
+we designed and evaluated above for cache management in ParSplice. 
 
 \subsection{Using Load Balancing Policies for Cache Management}
 
@@ -112,42 +109,56 @@ work ``out-of-the-box".
 
 \subsection{Using Cache Management Policies for Load Balancing}
 
+\begin{figure}[t]
+\noindent\includegraphics[width=0.5\textwidth]{figures/trace-atime.png}\\
+\caption{File system metadata reads for a Lustre trace collected at LANL. The
+vertical lines are the access patterns detected by the ParSplice cache
+management policy from Section~\S\ref{sec:dom-specific}.
+\label{fig:trace-atime}}
+\end{figure}
+
 %- how many inodes to keep in mds/client caches
 %- affects LB; increases capacity of single MDS (reduces req/mem pressure)
 %- affects LB; tells us which part of the cache to keep local
 
-% Load balancing in FSs
-The abstractions in Mantle were designed for file system metadata load
-balancing across a cluster of dedicated metadata servers, where spreading
-requests across servers improves performance. But another technique to reduce
-request load is caching. If clients and servers maintain a consistent cache,
-the client can do operations locally without contacting the metadata server.
-The caches in CephFS have the same performance and utilization trade-off as
-ParSplice, where large caches improve performance at the expense of a higher
-memory footprint. High memory utilization is problematic when a single metadata
-server maintains consistent caches with many clients.  Using cache management
-policies from the previous two sections has two benefits for load balancing:
-(1) increases the capacity of a single metadata server, and (2) helps identify
-which parts of the cache to keep local to a server. For example, applying the
-key access pattern detection algorithm from
-Section~\S\ref{sec:regime-detection} to a similar file system access pattern
-has the potential to identify when to migrate keys and how many keys to
-migrate.
+The cache management policies we developed earlier can be used by load
+balancing policies to effectively spread load across a cluster. For example,
+many distributed file systems spread the hierarchical namespace across a
+dedicated metadata cluster and caching policies could be used to determine what
+metadata to move and when to move it. To demonstrate this idea, consider
+Figure~\ref{fig:trace-atime}, where the dots are the file system metadata reads
+in a 1 hour window of a 3-day Lustre namespace trace and the vertical lines are
+the groups of accesses detected by our policy from
+Section~\S\ref{sec:regime-detection}.  The \(x\) axis is time and the \(y\)
+axis is the file ID, where the file IDs are listed in the order that they
+appear in the trace.  The trace is anonymized so all file names are replaced
+with a unique identifier and we do not know what clients are doing.  Although
+other access pattern detection algorithms are possible, we use the one designed
+for cache management in Section~\S\ref{sec:regime-detection} without
+modification and it successfully detects the largest group of key accesses that
+starts at time 1000 seconds and ends at time 2200 seconds. File systems that
+load balance file system metadata across a cluster would want to keep metadata
+in that group of key accesses on the same server to reduce RPCs.
 
 % burstiness of creates then compile
-To explore this example in more detail, consider the trace of metadata requests
-for compiling code in CephFS shown in Figure~\ref{fig:compile-ops}.  That trace
-shows the number of file system metadata requests serviced by the metadata
+Cache management can also increase the capacity of a single server, which
+affects how load should be distributed across a cluster.  For example, CephFS
+clients and servers maintain a consistent cache so that the client can do
+operations locally without contacting the metadata server.  But large caches
+use more memory, so having smart policies that detect key access patterns would
+greatly reduce memory footprints. For example, Figure~\ref{fig:compile-ops}
+shows the trace of metadata requests for compiling code in CephFS.  The \(y\)
+axis is  the number of file system metadata requests serviced by the metadata
 server when uncompressing (\texttt{untar}), compiling (\texttt{make}), and
 deleting (\texttt{rm}) the source code for the Linux kernel. If the system
 knows that the job phases would progress from many creates, to many lookups, to
 many deletes, then it could size its caches accordingly. For example, the file
 system could cache none of the metadata from the \texttt{untar} phase and run
-key access pattern detection during the \texttt{make} phase, resulting in the metadata
-server/clients only caching metadata that is repeatedly used. For the job in
-Figure~\ref{fig:compile-ops}, this would fill up the cache to only 20K inodes
-(the unit of metadata for file systems) instead of 60K, resulting in almost
-40MB of memory savings (since an inode is about
+key access pattern detection during the \texttt{make} phase, resulting in the
+metadata server/clients only caching metadata that is repeatedly used. For the
+job in Figure~\ref{fig:compile-ops}, this would fill up the cache to only 20K
+inodes (the unit of metadata for file systems) instead of 60K, resulting in
+almost 40MB of memory savings (since an inode is about
 1KB\footnote{http://docs.ceph.com/docs/master/dev/mds\_internals/data-structures/})
 without sacrificing performance.
 
@@ -160,6 +171,8 @@ Using ParSplice cache management policies for these types of workloads would
 reduce memory pressure without sacrificing performance.
 \label{fig:compile-ops}}
 \end{figure}
+
+\subsection{Other Use Cases}
 
 % other use cases caches/tiers 
 Storage systems have many other data management techniques that would benefit
@@ -176,10 +189,23 @@ hypothesize that since this is all software defined caching, something more
 clever than LRU would improve cache utilization without sacrificing too much
 performance.
 
-\subsection{Other Use Cases}
-% we said this is good for LB/Cache management... what about others??
-% QoS: when to move clients, where to move clients, how much of the reservation to move
-% Other cache management: MRU
-% Scheduling: how much of a resource to allocate; more than just LRU (RAD)
-%\subsection{Visualizing File System Traces like ParSplice Keyspace Traces}
+More generally, the similarities between load balancing and cache management
+show how the ``when"/``where"/``how much" abstractions, data management
+language, and policy engine may be widely applicable to other data management
+techniques, such as:
 
+\begin{itemize}
+
+  \item QoS: when to move clients, where to move clients, how much of the
+reservation to move
+
+  \item Scheduling: how much of a resource to allocate; more than just LRU
+(RAD)
+
+  \item Batching: how many operations to group together and when to send large
+batches of updates
+
+  \item Prefetching: how much to prefetch and how to select data to reterive
+(forward/backward/stride detection algorithms for prefetching,
+
+\end{itemize}
