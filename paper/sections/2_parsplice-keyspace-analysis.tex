@@ -131,18 +131,23 @@ Figure~\ref{fig:motivation-regimes} shows how ParSplice tasks read key-value
 pairs from the worker's cache for two different initial conditions of
 \(\Delta\), which is the rate that new atoms enter the simulation.  The line is
 the read request rate (\(y1\) axis) and the dots along the bottom are the
-number of unique keys accessed (\(y2\) axis).  The \(\Delta_1\) growth rate
-adds atoms every 100K microseconds while the \(\Delta_2\) growth rate adds
-atoms every 1 million microseconds. So \(\Delta_2\) has a smaller growth rate
-resulting in hotter keys and a smaller keyspace.  Values smaller than
-\(\Delta_2\)'s growth rate or a temperature of 400 degrees result in very
-little database activity because state transitions take too long. Similarly,
-values larger than \(\Delta_1\)'s growth rate or a temperature of 4000 degrees
-result in an equally meaningless simulation as transitions are unrealistic.
+number of unique keys accessed (\(y2\) axis).  The access patterns for
+different growth rates have temporal locality, as the reads per second for
+\(\Delta_2\) look like the reads per second for \(\Delta_1\) stretched out
+along the time axis.  The \(\Delta_1\) growth rate adds atoms every 100K
+microseconds while the \(\Delta_2\) growth rate adds atoms every 1 million
+microseconds. So \(\Delta_2\) has a smaller growth rate resulting in hotter
+keys and a smaller keyspace.  Values smaller than \(\Delta_2\)'s growth rate or
+a temperature of 400 degrees result in very little database activity because
+state transitions take too long. Similarly, values larger than \(\Delta_1\)'s
+growth rate or a temperature of 4000 degrees result in an equally meaningless
+simulation as transitions are unrealistic.  
+
 This figure demonstrates that small changes to \(\Delta\) can have a strong
 effect on the timing and frequency with which new EOM minima are discovered and
-referenced. This finding suggests that we need a flexible policy language and
-engine to explore these trade-offs.
+referenced.  Trends also exist for temperature and number of workers but are
+omitted here for space.  This finding suggests that we need a flexible policy
+language and engine to explore these trade-offs.  
 
 \begin{figure}[t]
   \noindent\includegraphics[width=0.5\textwidth]{figures/methodology-keys.png}\\
@@ -163,15 +168,7 @@ two growth rates in Figure~\ref{fig:motivation-regimes} are shown in
 Figure~\ref{fig:methodology-keys}, where reads are plotted for each unique
 state, or key, along the \(x\) axis. Keys are more popular than others (up to
 \(5\times\)) because worker tasks start generating states with different
-coordinates later in the run.  Figure~\ref{fig:methodology-keys} shows that the
+coordinates later in the run.  Figure~\ref{fig:methodology-keys} also shows that the
 number of reads changes with different initial conditions (\(\Delta\)), but
 that the spatial locality of key accesses is similar ({\it e.g.}, some keys are
 still \(5\times\) more popular than others).
-
-Figure~\ref{fig:motivation-regimes} shows how entropy for different growth
-rates has temporal locality, as the reads per second for \(\Delta_2\) look like
-the reads per second for \(\Delta_1\) stretched out along the time axis.
-Trends also exist for temperature and number of workers but are omitted here
-for space. This structure means that we can learn the key access patterns and
-adapt the storage system accordingly (this motivates
-Section~\S\ref{sec:dom-specific}).
