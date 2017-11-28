@@ -128,26 +128,30 @@ is circled in Figure~\ref{fig:parsplice}.
 
 \begin{figure}[t]
   \noindent\includegraphics[width=0.5\textwidth]{figures/methodology-keyspace.png}\\
-  \caption{The keyspace size is small but must satisfy many reads as workers
-  calculate new segments. Memory usage scales linearly, so It is likely that we will need
+  \caption{The keyspace is small but must satisfy many reads as workers
+  calculate segments. Memory usage scales linearly, so it is likely that we will need
   more than one node to manage segment coordinates when we scale the system or jobs up.
   \label{fig:methodology-keyspace}}
 \end{figure}
 
 \begin{figure}[t]
   \noindent\includegraphics[width=0.5\textwidth]{figures/motivation-regimes.png}\\
-  \caption{The key activity for ParSplice using two different growth
-rates.  The line shows the rate that EOM minima values are retrieved from the
-key-value store (\(y1\) axis) and the points along the bottom show the number
-of keys accessed in a 1 second sliding window (\(y2\) axis).\label{fig:motivation-regimes}}
+  \caption{Key activity for ParSplice starts with many reads to a small set of
+keys and progresses to less reads to a larger set of keys.  The line shows the
+rate that EOM minima values are retrieved from the key-value store (\(y1\)
+axis) and the points along the bottom show the number of keys accessed in a 1
+second sliding window (\(y2\) axis). Despite having different growth rates
+(\(\Delta\)), the structure and behavior of the key activities are similar.
+\label{fig:motivation-regimes}}
 \end{figure}
 
 \begin{figure}[t]
   \noindent\includegraphics[width=0.5\textwidth]{figures/methodology-keys.png}\\
-  \caption{The keyspace imbalance is due to workers generating deep
-  trajectories and reading the same coordinates. Over time, the accesses get
-  dispersed across different coordinates resulting in some keys being more
-  popular than others.\label{fig:methodology-keys}}
+  \caption{ Over time, tasks start to access a larger set of keys resulting in
+some keys being more popular than others.  Despite different growth rates
+(\(\Delta\)), the spatial locality of key accesses is similar between the two
+runs.  ({\it e.g.}, some keys are still read 5 times as many times others).
+\label{fig:methodology-keys}}
 \end{figure}
 
 \subsubsection*{Scalability} Figure~\ref{fig:methodology-keyspace} shows the

@@ -72,10 +72,13 @@ the cache degrades performance and predictability.
 
 \begin{figure}[t]
 \noindent\includegraphics[width=0.5\textwidth]{figures/methodology-tradeoff.png}\\
-\caption{Policy performance/utilization shows the trade-offs of different sized caches
-(\(x\) axis).  ``None" is ParSplice unmodified, ``Fixed Sized Cache" evicts
-keys using LRU, and ``Multi-Policy Cache" switches to fixed sized cache after
-absorbing the workload's initial burstiness.  \label{fig:methodology-tradeoff}}
+\caption{Policy performance/utilization shows the trade-offs of different sized
+caches (\(x\) axis).  ``None" is ParSplice unmodified, ``Fixed Sized Cache"
+evicts keys using LRU, and ``Multi-Policy Cache" switches to fixed sized cache
+after absorbing the workload's initial burstiness. This parameter sweep
+identifies the ``Multi-Policy Cache" of 1K keys as the best solution but this
+only works for this system setup and initial configurations.
+ \label{fig:methodology-tradeoff}}
 \end{figure}
 
 \begin{figure}[t]
@@ -83,8 +86,8 @@ absorbing the workload's initial burstiness.  \label{fig:methodology-tradeoff}}
         \includegraphics[width=0.5\textwidth]{figures/memory-vs-time.png}\\
 	\caption{Memory utilization for ``No Cache Management" (unlimited cache
 growth), ``Multi-Policy" (absorbs initial burstiness of workload), and
-``Dynamic Policy" (sizes cache according to key access patterns). The ``Dynamic
-Policy" saves the most memory without sacrificing performance.
+``Dynamic Policy" (sizes cache according to key access patterns). The dynamic
+policies saves the most memory without sacrificing performance.
 \label{fig:memory-vs-time}}
 \end{figure}%
  
@@ -174,9 +177,9 @@ and the results are in Figure~\ref{fig:dscache-vs-none}.
         \centering
         \includegraphics[width=1\textwidth]{figures/dscache-vs-none.png}\\
 
-	\caption{Performance/Utilization for dynamically sized cache (DSCache)
-policy. With negligible performance degradation, DSCache adjusts to different
-\(\Delta\)'s and saves 3\(\times\) as much memory in the best case.
+	\caption{The performance/utilization for the dynamically sized cache (DSCache)
+policy. With negligible performance degradation, DSCache adjusts to different initial configurations
+(\(\Delta\)'s) and saves 3\(\times\) as much memory in the best case.
 \label{fig:dscache-vs-none}}
 
     \end{subfigure}%
