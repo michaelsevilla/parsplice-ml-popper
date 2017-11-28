@@ -216,18 +216,18 @@ Fahrrad~\cite{povzner_horizon_2010} to achieve better guarantees without
 sacrificing performance.
 
   \item Scheduling: when to yield computation cycles to another process, how
-much of a resource to allocate. We could use Mantle to implement something like the RBED
-scheduler~\cite{brandt:rtss2003-rad}, that separates resource allocation from
-timing of delivery to enable real-time and non-real-time-scheduling classes. 
+much of a resource to allocate. We could use Mantle to implement the
+fairness/priority models used in the Mesos~\cite{hindman_mesos_2011} ``how
+many" policies.
 
-  \item Batching: how many operations to group together and when to send large
-batches of updates. We could use Mantle to shape the batching policies in the
-shared resource interface in  Malacology~\cite{sevilla:eurosys17-malacology}. 
+  \item Batching: how many operations to group together, when to send large
+batches of updates. We could use Mantle to implement to the pathname leases from
+IndexFS~\cite{ren:sc2014-indexfs} or the capabilities from
+CephFS\footnote{http://docs.ceph.com/docs/master/cephfs/capabilities/}.
 
-  \item Prefetching: how much to prefetch and how to select data to retrieve.
-We could use Mantle to implement forward/backward/stride detection algorithms
-for prefetching in RAID arrays or something more complicated, like the time
-series algorithms for adaptive I/O prefetching presented
-in~\cite{tran:sc01-arima}.
+  \item Prefetching: how much to prefetch, how to select data.  We could use
+Mantle to implement forward/backward/stride detection algorithms for
+prefetching in RAID arrays or something more complicated, like the time series
+algorithms for adaptive I/O prefetching from~\cite{tran:sc01-arima}.
 
 \end{itemize}
