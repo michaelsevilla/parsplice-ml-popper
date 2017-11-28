@@ -27,7 +27,7 @@ evict are specific to the application's behavior and the system's configuration
 (hardware, settings, etc.) so a new workload may prove to be a poor match for
 the selected caching
 policy~\cite{xiao:socc15-shardfs,brandt:msst2003-lh,sevilla:sc15-mantle,
-weil:sc2004-dyn-metadata, weil:osdi2006-ceph}. In this paper, we evaluate a
+weil:sc2004-dyn-metadata, weil:osdi2006-ceph}. We evaluate a
 variety of caching policies using our data management language/policy engine and
 arrive at a customized policy that works well for our target application.  This
 process of trying general policies and quickly iterating to a customized
@@ -83,10 +83,16 @@ without any performance degradation, works for a variety of initial conditions,
 and could generalize to similar applications.
 
 % What is Mantle
-In this paper we are presenting the successful use of the Mantle policy language and engine to manage the dynamically-sized cache. Mantle provides a control plane that
-injects policies into a running storage system, such as a file system or key-value store. While Mantle
-was originally designed for file system metadata load balancing~\cite{sevilla:sc15-mantle},
-we found that it works surprisingly well for specifying cache management policies without requiring users to possess extensive knowledge about the internals of storage systems. We show that our framework:
+
+In this paper we are presenting the successful use of our data management
+language and Mantle policy engine to control the behavior of ParSplice's
+caches. Mantle provides a control plane that injects policies into a running
+storage system, such as a file system or key-value store. While Mantle was
+originally designed for file system metadata load
+balancing~\cite{sevilla:sc15-mantle}, we find that it works surprisingly well
+for specifying cache management policies without requiring users to possess
+extensive knowledge about the internals of storage systems. We show that our
+framework:
 
 \begin{itemize}
 
