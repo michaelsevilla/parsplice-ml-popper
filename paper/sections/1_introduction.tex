@@ -22,32 +22,30 @@ policies that guide what data to evict and when to evict vary with the use
 case. For example, caching file system metadata on clients and servers reduces
 the number of remote procedure calls and improves the performance of
 create-heavy workloads common in HPC~\cite{ren:sc2014-indexfs,
-patil:fast2011-giga+}. But the policies for what data to evict and when to
-evict are specific to the application's behavior and the system's configuration
-(hardware, settings, etc.) so a new workload may prove to be a poor match for
-the selected caching
+patil:fast2011-giga+, weil:sc2004-dyn-metadata}. But the policies for what data
+to evict and when to evict are specific to the application's behavior and the
+hardware configuration so a new workload may prove to be a poor match for the
+selected caching
 policy~\cite{xiao:socc15-shardfs,brandt:msst2003-lh,sevilla:sc15-mantle,
-weil:sc2004-dyn-metadata, weil:osdi2006-ceph}. We evaluate a
-variety of caching policies using our data management language/policy engine and
-arrive at a customized policy that works well for our target application.  This
-process of trying general policies and quickly iterating to a customized
-solution shows that our prototype can be adapted to different workloads.
+weil:sc2004-dyn-metadata, weil:osdi2006-ceph}. We evaluate a variety of caching
+policies using our data management language/policy engine and arrive at a
+customized policy that works well for our example application,
+ParSplice~\cite{perez:jctc20150parsplice}.
 
-Our example application, ParSplice~\cite{perez:jctc20150parsplice}, is
-representative of an important class of applications with similar working set
-behaviors that extensively use software-based caches.  ParSplice is a molecular
-dynamics simulation that uses a hierarchy of caches and a single persistent
-key-value store to store both observed minima across a molecule's equation of
-motion (EOM) and the hundreds or thousands of partial trajectories calculated
-each second during a parallel job.  This workload is pervasive across
-simulations that rely on a mesh-based decomposition of a physical region and
-result in millions or billions of mesh cells, where each cell contains
-materials, pressures, temperatures and other characteristics that are required
-to accurately simulate phenomena of interest.  The fine-grained data annotation
-capabilities provided by key-value storage is a natural match for these types
-of scientific simulations.  Unfortunately, simulations of this size saturate
-the capacity and bandwidth capabilities of a single node so we need more
-effective data management techniques.
+ParSplice, the molecular dynamics simulation, is representative of an important
+class of HPC applications with similar working set behaviors that extensively
+use software-based caches. It uses a hierarchy of caches and a single
+persistent key-value store to store both observed minima across a molecule's
+equation of motion (EOM) and the hundreds or thousands of partial trajectories
+calculated each second during a parallel job.  This workload is pervasive
+across simulations that (1) rely on a mesh-based decomposition of a physical
+region and (2) result in millions or billions of mesh cells, where each cell
+contains materials, pressures, temperatures and other characteristics that are
+required to accurately simulate phenomena of interest.  The fine-grained data
+annotation capabilities provided by key-value storage is a natural match for
+these types of scientific simulations.  Unfortunately, simulations of this size
+saturate the capacity and bandwidth capabilities of a single node so we need
+more effective data management techniques.
 
 \begin{figure}[t]
 \noindent\includegraphics[width=0.5\textwidth]{figures/cache-management.png}\\

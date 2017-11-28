@@ -26,17 +26,7 @@ specific knowledge, {\it i.e.} the hardware and software of the storage
 hierarchy.
 
 % technical details
-The results for different cache sizes for a growth rate of \(\Delta_1\) over a
-2.5 hour run across 256 workers is shown in
-Figure~\ref{fig:methodology-tradeoff}.  ``Baseline" is the performance of
-unmodified ParSplice  measured in trajectory duration (\(y1\) axis) and
-utilization is measured with memory footprint of just the cache (\(y2\) axis).
-The middle graph labeled ``Fixed Cache Size" shares the \(y\) axes and shows the
-trade-off of using a basic LRU-style cache of different sizes, where the
-penalty for a cache miss is retrieving the data from the persistent database.
-We evict keys (if necessary) at every operation instead of when segments
-complete because the cache fills up too quickly otherwise. This is implemented
-using a ``when" policy of:
+We implement a basic LRU cache using a ``when" policy of:
 
 \begin{figure}[h]
 \footnotesize
@@ -54,6 +44,14 @@ servers[whoami]['cachesize']-n
 \end{minted}
 \end{figure}
 
+The results for different cache sizes for a growth rate of \(\Delta_1\) over a
+2.5 hour run across 256 workers is shown in
+Figure~\ref{fig:methodology-tradeoff}.  ``Baseline" is the performance of
+unmodified ParSplice  measured in trajectory duration (\(y1\) axis) and
+utilization is measured with memory footprint of just the cache (\(y2\) axis).
+The middle graph labeled ``Fixed Cache Size" shares the \(y\) axes and shows
+the trade-off of using a basic LRU-style cache of different sizes, where the
+penalty for a cache miss is retrieving the data from the persistent database.
 The error bars are the standard deviation of 3 runs.  Although the keyspace
 grows to 150K, a 100K key cache achieves 99\% of the performance. Decreasing
 the cache degrades performance and predictability.
@@ -111,10 +109,11 @@ one time.  It turns out that the unique keys plotted in
 Figure~\ref{fig:motivation-regimes} are per second and are not representative
 of the actual active keyspace; the number of active keys is larger than 100, as
 some keys may be accessed at time \(t_0\), not in \(t_1\), and then again in
-\(t_2\). Because the cache is too small, reads and writes hit rest of the
-storage hierarchy and the excessive traffic triggers a LevelDB compaction on
-the persistent database.  To avoid overloading the storage hierarchy with
-requests, we design a multi-part policy that switches between:
+\(t_2\). Because the cache is too small, reads and writes fall through to the
+rest of the storage hierarchy and the excessive traffic triggers a LevelDB
+compaction on the persistent database.  To avoid these compactions, which
+temporarily block operations, we design a multi-policy cache that switches
+between:
 
 \begin{itemize}
   \item unlimited growth policy: cache increases on every write
@@ -128,15 +127,15 @@ flash crowd passes because the keyspace is far less active.  We program Mantle
 to trigger the policy switch at 100K keys to absorb the flash crowd at the
 beginning of the run. Once triggered, keys are evicted to bring the size of the
 cache down to the threshold.  The actual policy is shown and described in more
-detail in the next section in Figure~\ref{src:lru-dyn}.  The plot on the right
-side of Figure~\ref{fig:methodology-tradeoff} shows the performance/utilization
-trade-off of the multi-part policy, where the cache sizes for the \(n\) key
-limit policy are along the \(x\) axis.  The performance and memory utilization
-for a 100K key cache size is the same as the 100K bar in the ``Fixed Cache
-Size" graph in Figure~\ref{fig:methodology-tradeoff} but the rest reduce the
-size of the keyspace after the read flash crowd.  We see the worst performance
-when the engine switches to the 10 key limit policy, which achieves 94\% of the
-performance while only using 40KB of memory. 
+detail in Section~\S\ref{sec:scope} in Figure~\ref{src:lru-dyn}.  The plot on
+the right side of Figure~\ref{fig:methodology-tradeoff} shows the
+performance/utilization trade-off of the multi-policy cache, where the cache
+sizes for the \(n\) key limit policy are along the \(x\) axis.  The performance
+and memory utilization for a 100K key cache size is the same as the 100K bar in
+the ``Fixed Cache Size" graph in Figure~\ref{fig:methodology-tradeoff} but the
+rest reduce the size of the keyspace after the read flash crowd.  We see the
+worst performance when the policy switches to the 10 key limit policy, which
+achieves 94\% of the performance while only using 40KB of memory. 
 
 % caveats: it is calculating 90% of the trajectory, memory value reported is final
 \subsubsection*{Caveats}
@@ -209,16 +208,18 @@ fan['start'] = 0
 fans[#fans+1] = fan 
 
 if #fans < 2 then -- do not evict current fan
-  return false 
+  return false
 else
-  WRstate(fans[#fans-1]['top']-fans[1]['bot'])
+  WRstate(fans[#fans-1]['top']-fans[1]['bot']) 
   return true
 end
 \end{minted}
-\caption{The dynamically sized cache policy, whose performance is shown in 
-Figure~\ref{fig:cache-management}, iterates backwards over timestamp-key pairs
-and detects when key accesses move on to a new subset of
-keys ({\it i.e.} ``fans"). \label{src:dyn-cache}}
+\caption{The dynamically sized cache policy iterates backwards over
+timestamp-key pairs and detects when accesses move on to a new subset of keys
+({\it i.e.} ``fans"). The performance and total memory usage is in
+Figure~\ref{fig:dscache-vs-none} and the memory usage over time is in
+Figure~\ref{fig:memory-vs-time}.
+\label{src:dyn-cache}}
 \end{figure}
 
 %\begin{figure}[t]
@@ -276,7 +277,7 @@ Figure~\ref{fig:keyspace-zoomed} shows how a single superbasin affects the key
 accesses. Moving along the \(x\) axis shows that the number of unique keys
 accessed over time grows while moving along the \(y\) axis shows that early
 keys are accessed more often.  Despite these patterns, the following
-characteristics of superbasins make it hard to detect them:
+characteristics of superbasins make them hard to detect:
 
 \begin{itemize}
 
@@ -326,13 +327,13 @@ not thick enough.
 \subsection{Dynamically Sized Cache: Access Pattern Detection}
 \label{sec:regime-detection}
 
-After trying these techniques we found that the basic algorithm in
+After trying these techniques we found that the basic O(\(n\)) algorithm in
 Figure~\ref{src:dyn-cache} works best. The algorithm detects groups of key
 accesses, which we call ``fans", by iterating backwards through the key access
 trace, finding the lowest key ID, and comparing against the lowest key ID we
 have seen so far (Line 7). We also maintain the top and bottom of each group of
 key accesses (Line 13) so we can tell the ``how much" policy the number of keys
-to evict (Line 19).  The algorithm is O(\(n\)), where \(n\) is the number
+to evict (Line 23).  The algorithm is O(\(n\)), where \(n\) is the number
 events, but the benefit is that the approach avoids adding new thresholds for
 key access pattern detection ({\it e.g.}, space between key accesses, space
 between key IDs, and window size of consecutive key accesses).

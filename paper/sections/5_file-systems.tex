@@ -22,7 +22,7 @@ end
         \end{minted}
         \caption{ParSplice cache management policy that absorbs the burstiness of the
         workload before switching to a constrained cache.  The
-        performance/utilization for different  \texttt{n} is in
+        performance/utilization for different  \(n\) is in
         Figure~\ref{fig:methodology-tradeoff}. \label{src:lru-dyn}}
     \end{subfigure}%
     ~ 
@@ -50,14 +50,6 @@ end
     \caption{ParSplice's cache management policy has the same components as
     CephFS's load balancing policy.}
 \end{figure*}
-
-
-
-%\begin{itemize}
-%  \item Lustre Trace
-%  \item LinkedIn Trace
-%  \item Nathan's Trace
-%\end{itemize}
 
 In the previous section, we used our data management language and the Mantle
 policy engine to design effective cache management strategies for a new
@@ -104,9 +96,9 @@ policy-switching conditions.
 
 These similarities among effective policies for two very different domains
 suggest that the heuristics and techniques in other load balancers can be used
-for cache management. The result support the notion that concepts and problems
-that architects grapple with are transcendent and the solutions they design can
-be re-used in different code bases.
+for cache management. The result supports the notion that concepts and problems
+that architects grapple with are transcendent across domains and the solutions
+they design can be re-used in different code bases.
 
 \subsection{Using Cache Management Policies for Load Balancing}
 
@@ -114,11 +106,11 @@ be re-used in different code bases.
 \noindent\includegraphics[width=0.5\textwidth]{figures/trace-atime.png}\\
 \caption{File system metadata reads for a Lustre trace collected at LANL. The
 vertical lines are the access patterns detected by the ParSplice cache
-management policy from Section~\S\ref{sec:dom-specific}. A load balancing
-policy can use the same pattern detection to make decisions, such as avoiding
-migration when the workload is accessing the same subset of keys or keeping
-groups of accesses local to a single server.
-\label{fig:trace-atime}}
+management policy from Section~\S\ref{sec:dom-specific}. A file system that
+load balances metadata across a cluster of servers could use the same pattern
+detection to make migration decisions, such as avoiding migration when the
+workload is accessing the same subset of keys or keeping groups of accesses
+local to a server.  \label{fig:trace-atime}}
 \end{figure}
 
 %- how many inodes to keep in mds/client caches
@@ -196,7 +188,7 @@ domains and could work ``out-of-the-box".
 % other use cases caches/tiers 
 Storage systems have many other data management techniques that would benefit
 from the caching policies developed in Sections~\S\ref{sec:arch-specific}
-and~\ref{sec:dom-specific}. For example, Ceph administrators can use the
+and~\S\ref{sec:dom-specific}. For example, Ceph administrators can use the
 policies in ParSplice to automatically size and manage cache
 tiers\footnote{http://docs.ceph.com/docs/master/rados/operations/cache-tiering/},
 caching on object storage devices, or in the distributed block
