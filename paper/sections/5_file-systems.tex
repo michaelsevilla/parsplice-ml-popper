@@ -72,7 +72,7 @@ cache management in ParSplice.
 From a high-level the cache management policy we designed in
 Figure~\ref{src:lru-dyn} trims the cache if the cache reaches a certain size
 {\it and} if it has already absorbed the initial burstiness of the workload.
-Much of this implementation was inspired by the file system metadata load
+Much of this implementation was inspired by the CephFS metadata load
 balancing policy in Figure~\ref{src:lua-cephfs}, which was presented
 in~\cite{sevilla:sc15-mantle}. That policy migrates file system metadata if the
 load is higher than the average load in the cluster {\it and} the current
@@ -92,7 +92,7 @@ Fig~\ref{src:lua-cephfs}: Lines 3,4,9) - these lines use Mantle to write/read st
 from previous decisions.  For ParSplice, we save a boolean that indicates
 whether we have absorbed the workload's initial burstiness. For CephFS, we save
 the number of consecutive instances that the server has been overloaded. We
-also clear the count (Line 10) if the server is no longer overloaded. 
+also clear the count (Line 9) if the server is no longer overloaded. 
 
 \textbf{Multi-Policy Strategy} (Fig.~\ref{src:lru-dyn}: Line 6;
 Fig.~\ref{src:lua-cephfs}: Line 5) - after determining that the node is
@@ -103,10 +103,10 @@ two iterations. The persistent state is essential for both of these
 policy-switching conditions.
 
 These similarities among effective policies for two very different domains
-suggests that the heuristics and techniques in other load balancers can be used
-for cache management. The result suggests that the concepts and problems that
-architects grapple with are transcendent and the solutions they design can be
-re-used in different code bases.
+suggest that the heuristics and techniques in other load balancers can be used
+for cache management. The result support the notion that concepts and problems
+that architects grapple with are transcendent and the solutions they design can
+be re-used in different code bases.
 
 \subsection{Using Cache Management Policies for Load Balancing}
 
@@ -114,7 +114,9 @@ re-used in different code bases.
 \noindent\includegraphics[width=0.5\textwidth]{figures/trace-atime.png}\\
 \caption{File system metadata reads for a Lustre trace collected at LANL. The
 vertical lines are the access patterns detected by the ParSplice cache
-management policy from Section~\S\ref{sec:dom-specific}.
+management policy from Section~\S\ref{sec:dom-specific}. The policy works
+``out-of-the-box", which suggests that data management policies are general and
+can be used across domains.
 \label{fig:trace-atime}}
 \end{figure}
 
@@ -221,7 +223,7 @@ fairness/priority models used in the Mesos~\cite{hindman_mesos_2011} ``how
 many" policies.
 
   \item Batching: how many operations to group together, when to send large
-batches of updates. We could use Mantle to implement to the pathname leases from
+batches of updates. We could use Mantle to implement pathname leases from
 IndexFS~\cite{ren:sc2014-indexfs} or the capabilities from
 CephFS\footnote{http://docs.ceph.com/docs/master/cephfs/capabilities/}.
 

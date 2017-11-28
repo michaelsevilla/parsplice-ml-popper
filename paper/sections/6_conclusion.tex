@@ -15,12 +15,12 @@ because it was designed for HPC and has the proper mechanisms for migration
 already implemented.  
 
 State-of-the-art distributed file systems partition write-heavy workloads and
-replicate read-heavy workloads, similar to the approach we are advocating
-here.  IndexFS~\cite{ren:sc2014-indexfs} partitions directories and clients
-write to different partitions by grabbing leases and caching ancestor metadata
-for path traversal. ShardFS takes the replication approach to the extreme by
-copying all directory state to all nodes. The Ceph file system
-(CephFS)~\cite{weil:sc2004-dyn-metadata, weil:osdi2006-ceph} employs both
+replicate read-heavy workloads, similar to the approach we are advocating here.
+IndexFS~\cite{ren:sc2014-indexfs} partitions directories and clients write to
+different partitions by grabbing leases and caching ancestor metadata for path
+traversal. ShardFS~\cite{xiao:socc15-shardfs} takes the replication approach to
+the extreme by copying all directory state to all nodes.
+CephFS~\cite{weil:sc2004-dyn-metadata, weil:osdi2006-ceph} employs both
 techniques to a lesser extent; directories can be replicated or sharded but the
 caching and replication policies are controlled with tunable parameters.  These
 systems still need to be tuned by hand with {\it ad-hoc} policies designed for
@@ -29,8 +29,8 @@ difficult than adding the migration mechanisms themselves.  For example,
 IndexFS/CephFS use the GIGA+~\cite{patil:fast2011-giga} technique for
 partitioning directories at a \emph{predefined} threshold. Mantle makes headway
 in this space by providing a framework for exploring these policies, but does
-not attempt anything more sophisticated ({\it e.g.}, machine learning) to create
-these policies. 
+not attempt anything more sophisticated ({\it e.g.}, machine learning) to
+create these policies. 
 
 % ml and autotuning
 Auto-tuning is a well-known technique used in
@@ -58,16 +58,14 @@ construct a single, complex policy that works for a variety of scenarios, we
 instead use the Mantle framework to enable software-defined storage systems to
 flexibly change policies as the workload changes.  We also observe that many of
 the primitives and strategies have enough in common with data management in
-file systems that they both can be expressed with similar semantics and a
-general policy engine.
+file systems that they both can be expressed with similar semantics.
 
 This lays the foundation for future work, where we will focus on formalizing a
 collection of general data management policies that can be used across
 applications and storage systems.  The value of such a collection eases the
-burden of policy development and paves the way for solutions that remove the
-administrator from the development cycle, such as (1) adaptable policies that
-automatically switch to new strategies when the current strategy behaves poorly
-({\it e.g.}, thrashing, making no progress, etc.), and (2) policy generation,
-where new policies are constructed automatically by examining the collection of
-existing policies.  Ultimately, we hope that this automation enables control of
-policies by machines instead of administrators. 
+burden of policy development and paves the way for automated solutions such as
+(1) adaptable policies that switch to new strategies when the current strategy
+behaves poorly ({\it e.g.}, thrashing, making no progress, etc.), and (2)
+policy generation, where new policies are constructed by examining the
+collection of existing policies.  Ultimately, we hope that this automation
+enables control of policies by machines instead of administrators. 

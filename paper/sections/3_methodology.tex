@@ -3,27 +3,27 @@
 %  \item background: CephFS implementation
 To explore software-defined cache management, we use the data management
 language and policy engine presented in~\cite{sevilla:sc15-mantle}. The
-prototype in that paper was called Mantle and it was originally built on CephFS
-so administrators could control file system metadata load balancing policies.
-We now refer to Mantle as a policy engine that supports our data management
-language.  The basic premise is that data management policies can be expressed
-with a simple API consisting of ``when", ``where", and ``how much". The ``when" policy
-controls how aggressive or conservative the decisions are; ``where" controls
-how distributed or concentrated the data should be; and ``how much" controls
-the amount of data that should be sent. There is also a ``load" policy that
-lets administrators specify how to collapse many metrics into a single load
-metric ({\it e.g.}, \(2\times\texttt{cpu} + 3\times\texttt{memory usage}\)).
+prototype in that paper, Mantle, was built on CephFS and lets administrators
+control file system metadata load balancing policies.  We now refer to Mantle
+as a policy engine that supports our data management language.  The basic
+premise is that data management policies can be expressed with a simple API
+consisting of ``when", ``where", and ``how much". The ``when" policy controls
+how aggressive or conservative the decisions are; ``where" controls how
+distributed or concentrated the data should be; and ``how much" controls the
+amount of data that should be sent. There is also a ``load" policy that lets
+administrators specify how to collapse many metrics into a single load metric
+({\it e.g.}, \(2\times\texttt{cpu} + 3\times\texttt{memory usage}\)).
 
 The succinctness of the API lets users inject multiple, possibly dynamic, policies. In
 this work we focus on a single node, so the ``where" policy is not used. When
 we move ParSplice to a distributed key-value store back-end, the ``where" policy
-will be used determine which key-value pairs should be moved to which node.
+will be used to determine which key-value pairs should be moved to which node.
 
 \subsection{Extracting Mantle as a Library}
 \label{sec:extracting}
 
 We extracted Mantle as a library and Figure~\ref{fig:mantle} shows how it is
-linked into a storage system.  Administrators write policies in Lua from whatever
+linked into a storage system service.  Administrators write policies in Lua from whatever
 domain they choose ({\it e.g.}, statistics, machine learning, storage system)
 and the policies are embedded into the runtime by Mantle.  We chose Lua for
 simplicity, performance, and portability; it is a scripting language with
@@ -62,7 +62,7 @@ Figure~\ref{fig:mantle} and described below.
 \end{table}
 
 \subsubsection{Environment of Metrics} storage systems expose \textbf{cluster} metrics
-for describing resource utilization and \textbf{time series} metrics for
+for describing resource utilizations and \textbf{time series} metrics for
 describing accesses to some data structure over time. Table~\ref{table:metrics}
 shows how these metrics are accessed from the policies written by
 administrators. 
@@ -86,7 +86,7 @@ load = servers[0]['cpu']
 \end{figure}
 
 For time series metrics, the storage system passes an array of \texttt{(timestamp,
-value)} pairs to Mantle and the policies can iterate over the accesses.  The
+value)} pairs to Mantle and the policies can iterate over the values. The
 storage system uses a pointer to the time series to facilitate time series with many
 values, like accesses to a database or directory in the file system namespace.
 This decision limits the time series metrics to only include values from the
@@ -149,18 +149,17 @@ key} pairs. In Section~\S\ref{sec:dom-specific}, we explore a key access
 pattern detection algorithm that uses this metric.
 
 % where policies are made
-We link Mantle directly into the worker cache circled in red in
-Figure~\ref{fig:parsplice}. We put the ``when" and ``how much" callbacks
-alongside code that checks for memory pressure. It is executed right before the
-worker processes incoming and outgoing put/get transactions to the cache. We
-only do cache management once every second to avoid maintaining the cache for
-every request. We expected to have to increase this polling interval to
-accommodate more complex policies but even our most complicated policy in
-Section~\S\ref{sec:dom-specific} had a negligible effect on performance when
-executed every second (within the standard deviation for multiple runs when
-compared against a policy that returns immediately). This may be because the
-worker is not overloaded and the bottleneck is somewhere else in the system.
-As stated previously, we do not use the ``where" part of Mantle because we
-focus on a single node, but this part of the API will be used when we move the
-caches and storage nodes to a key-values store back-end that uses key load
-balancing and repartitioning.
+We link Mantle into all caches in the system and put the ``when" and ``how
+much" callbacks alongside code that checks for memory pressure. It is executed
+right before the worker processes incoming and outgoing put/get transactions to
+the cache. We only do cache management once every second to avoid maintaining
+the cache for every request. We expected to have to increase this polling
+interval to accommodate more complex policies but even our most complicated
+policy in Section~\S\ref{sec:dom-specific} had a negligible effect on
+performance when executed every second (within the standard deviation for
+multiple runs when compared against a policy that returns immediately). This
+may be because the worker is not overloaded and the bottleneck is somewhere
+else in the system.  As stated previously, we do not use the ``where" part of
+Mantle because we focus on a single node, but this part of the API will be used
+when we move the caches and storage nodes to a key-values store back-end that
+uses key load balancing and repartitioning.

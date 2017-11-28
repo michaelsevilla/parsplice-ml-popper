@@ -10,7 +10,7 @@ statistical models, calculus, and machine learning. While Mantle was originally
 designed for distributed file systems, we show how the collection of
 abstractions effectively decomposes the problem into manageable policies for a
 different application and storage system.  Our exploration of this space results in a
-dynamically sized cache policy that sacrifices negligible performance while
+dynamically sized cache policy that does not sacrifice any performance while
 using 32-66\% less memory than the default ParSplice configuration.
 
 \end{abstract}
@@ -34,7 +34,7 @@ process of trying general policies and quickly iterating to a customized
 solution shows that our prototype can be adapted to different workloads.
 
 Our example application, ParSplice~\cite{perez:jctc20150parsplice}, is
-representative of an important class applications with similar working set
+representative of an important class of applications with similar working set
 behaviors that extensively use software-based caches.  ParSplice is a molecular
 dynamics simulation that uses a hierarchy of caches and a single persistent
 key-value store to store both observed minima across a molecule's equation of
@@ -65,23 +65,22 @@ lines marked with \(\times\)'s are the existing configurations in ParSplice.
 The default configuration uses an unlimited sized cache, shown by the ``No
 Cache Management" line, but using this much memory for one cache is
 unacceptable for HPC environments, where a common goal is to keep memory for
-such data structures below 3\%\footnote{Anecdotally, we find this threshold
-works well for HPC applications.  For reference, a 1GB cache for a distributed
-file system is too large in LANL deployments.}. Furthermore, ParSplice deploys
-a cache per 300 worker processes, so large simulations need more caches and
-will use even more memory.  Users can configure ParSplice to evict data when
-the cache reaches a threshold but this solution requires tuning and parameter
-sweeps; the ``Cache (too small)" curve in Figure~\ref{fig:cache-management}
-shows how a poorly configured cache can save memory but at the cost of
-performance, which is shown by the text annotation to the right.  Even worse,
-this threshold changes with different initial configurations and cluster setups
-so tuning needs to be done for all system permutations.  Our dynamically sized
-cache, shown by the thick line in Figure~\ref{fig:cache-management}, detects
-key access patterns and re-sizes the cache accordingly.  Without tuning or
-parameter sweeps, our solution saves more memory than a hand-tuned cache with a
-negligible performance degradation (within the baseline's standard deviation),
-works for a variety of initial conditions, and could generalize to similar
-applications.
+such data structures below 3\%\footnote{Anecdotally, this threshold works well
+for HPC applications.  For reference, a 1GB cache for a distributed file system
+is too large in LANL deployments.}. Furthermore, ParSplice deploys a cache per
+300 worker processes, so large simulations need more caches and will use even
+more memory.  Users can configure ParSplice to evict data when the cache
+reaches a threshold but this solution requires tuning and parameter sweeps; the
+``Cache (too small)" curve in Figure~\ref{fig:cache-management} shows how a
+poorly configured cache can save memory but at the cost of performance, which
+is shown by the text annotation to the right.  Even worse, this threshold
+changes with different initial configurations and cluster setups so tuning
+needs to be done for all system permutations.  Our dynamically sized cache,
+shown by the thick line in Figure~\ref{fig:cache-management}, detects key
+access patterns and re-sizes the cache accordingly.  Without tuning or
+parameter sweeps, our solution saves more memory than a hand-tuned cache
+without any performance degradation, works for a variety of initial conditions,
+and could generalize to similar applications.
 
 % What is Mantle
 In this paper we are presenting the successful use of the Mantle policy language and engine to manage the dynamically-sized cache. Mantle provides a control plane that
@@ -111,10 +110,10 @@ we found that it works surprisingly well for specifying cache management policie
 This last contribution is explored in Sections~\S\ref{sec:arch-specific}
 and~\S\ref{sec:dom-specific}, where we try a range of policies from different
 disciplines; but more importantly, in Section~\S\ref{sec:scope}, we conclude
-that the collection of policies we design for cache management in ParSplice
-are very similar to the policies used to load balance metadata in the Ceph file
-system (CephFS) suggesting that there is potential for automatically adapting
-and generating policies dynamically.  
+that the collection of policies we design for cache management in ParSplice are
+very similar to the policies used to load balance metadata in the Ceph file
+system (CephFS~\cite{weil:osdi2006-ceph}) suggesting that there is potential
+for automatically adapting and generating policies dynamically.  
 
 %Manageable: abstracts away complexities of the system (pass around to others,
 %use different strategies) 
