@@ -114,9 +114,10 @@ be re-used in different code bases.
 \noindent\includegraphics[width=0.5\textwidth]{figures/trace-atime.png}\\
 \caption{File system metadata reads for a Lustre trace collected at LANL. The
 vertical lines are the access patterns detected by the ParSplice cache
-management policy from Section~\S\ref{sec:dom-specific}. The policy works
-``out-of-the-box", which suggests that data management policies are general and
-can be used across domains.
+management policy from Section~\S\ref{sec:dom-specific}. A load balancing
+policy can use the same pattern detection to make decisions, such as avoiding
+migration when the workload is accessing the same subset of keys or keeping
+groups of accesses local to a single server.
 \label{fig:trace-atime}}
 \end{figure}
 
