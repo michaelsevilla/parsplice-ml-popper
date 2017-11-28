@@ -84,21 +84,10 @@ works for a variety of initial conditions, and could generalize to similar
 applications.
 
 % What is Mantle
-To design more flexible cache management policies, like our solution in
-Figure~\ref{fig:cache-management}, we use the data management language and
-policy engine from the Mantle paper~\cite{sevilla:sc15-mantle}.  While Mantle
-was designed for the narrow purpose of file system metadata load balancing,
-this paper provides evidence that the approach is more broad.  Specifically,
-the collection of abstractions in Mantle provide a general control plane that
-improves the performance of metadata access. So in this paper we refer to
-Mantle as a policy engine that injects policies written in our data management
-language directly into a running storage system, such as a file system or key-value
-store.  Rather than implementing a policy directly into the storage system,
-which requires domain-specific knowledge to find and change policies in the
-storage system, we separate policies from mechanisms in a general way.  By
-exposing just the policies developers unfamiliar with the storage system that
-their application uses can quickly deploy efficient solutions based on their
-application-specific knowledge.  We show that our framework:
+In this paper we are presenting the successful use of the Mantle policy language and engine to manage the dynamically-sized cache. Mantle provides a control plane that
+injects policies into a running storage system, such as a file system or key-value store. While Mantle
+was originally designed for file system metadata load balancing~\cite{sevilla:sc15-mantle},
+we found that it works surprisingly well for specifying cache management policies without requiring users to possess extensive knowledge about the internals of storage systems. We show that our framework:
 
 \begin{itemize}
 
