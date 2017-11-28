@@ -104,9 +104,9 @@ policy-switching conditions.
 
 These similarities among effective policies for two very different domains
 suggests that the heuristics and techniques in other load balancers can be used
-for cache management. This generalization may reduce the work that needs to be
-done for cache management as ideas may have already been explored and could
-work ``out-of-the-box". 
+for cache management. The result suggests that the concepts and problems that
+architects grapple with are transcendent and the solutions they design can be
+re-used in different code bases.
 
 \subsection{Using Cache Management Policies for Load Balancing}
 
@@ -148,6 +148,13 @@ load balance file system metadata across a cluster would want to keep metadata
 in that group of key accesses on the same server for locality and would want to
 avoid migrating metadata to a different server until the group of key accesses
 completes.
+
+Before we showed how policies designed for load balancing heavily influence our
+cache management in a different application and storage system. But in this
+section we show how an {\it unmodified} cache management policy can be used in
+a load balancing strategy.  This generalization may reduce the work that needs to
+be done for load balancing as ideas may have already been explored in other
+domains and could work ``out-of-the-box". 
 
 %% burstiness of creates then compile
 %Cache management can also increase the capacity of a single server, which
