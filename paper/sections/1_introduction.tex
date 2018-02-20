@@ -53,6 +53,8 @@ more effective data management techniques.
 dynamically sized caching policy (thick line) for ParSplice.  Compared to
 existing configurations (thin lines with \(\times\)'s), our solution saves the most
 memory without sacrificing performance and works for a variety of inputs.
+Solutions labeled ``no performance degradation" are in comparison to the
+baseline of using a cache of unlimited size (``No Cache Management").
 \label{fig:cache-management}}
 \end{figure}
 
@@ -78,7 +80,10 @@ shown by the thick line in Figure~\ref{fig:cache-management}, detects key
 access patterns and re-sizes the cache accordingly.  Without tuning or
 parameter sweeps, our solution saves more memory than a hand-tuned cache
 without any performance degradation, works for a variety of initial conditions,
-and could generalize to similar applications.
+and could generalize to similar applications. Triggering key eviction at a
+certain memory pressure ({\it e.g.} 3\%) requires {\it a priori} system
+knowledge while our approach saves the most memory because we model the
+behavior of keyspace accesses.
 
 % What is Mantle
 
@@ -113,11 +118,16 @@ framework:
 
 This last contribution is explored in Sections~\S\ref{sec:arch-specific}
 and~\S\ref{sec:dom-specific}, where we try a range of policies from different
-disciplines; but more importantly, in Section~\S\ref{sec:scope}, we conclude
-that the collection of policies we design for cache management in ParSplice are
-very similar to the policies used to load balance metadata in the Ceph file
-system (CephFS~\cite{weil:osdi2006-ceph}) suggesting that there is potential
-for automatically adapting and generating policies dynamically.  
+disciplines. We analyze why our early policies fail for our HPC hardware and
+software and show how we iterated to the final solution.  More importantly, in
+Section~\S\ref{sec:scope}, we conclude that the collection of policies we
+design for cache management in ParSplice are very similar to the policies used
+to load balance metadata in the Ceph file system
+(CephFS~\cite{weil:osdi2006-ceph}) suggesting that there is potential for
+automatically adapting and generating policies dynamically. This paper does not
+thoroughly study cache management policies for file systems, but our findings
+for this specific application and related storage systems work suggests that
+this approach is a strong avenue for future work.
 
 %Manageable: abstracts away complexities of the system (pass around to others,
 %use different strategies) 
