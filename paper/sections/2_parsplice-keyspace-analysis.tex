@@ -85,8 +85,10 @@ Figure~\ref{fig:parsplice}.
 \begin{figure}[t]
   \noindent\includegraphics[width=0.5\textwidth]{figures/methodology-keyspace.png}\\
   \caption{The keyspace is small but must satisfy many reads as workers
-  calculate segments. Memory usage scales linearly, so it is likely that we will need
-  more than one node to manage segment coordinates when we scale the system or jobs up.
+  calculate segments. Memory usage scales linearly, so it is likely that we will
+  need more than one node to manage segment coordinates when we scale the system
+  or jobs up. \(\Delta_1\) is the growth rate, an application specific parameter
+  described in Section~\S\ref{sec:delta}.
   \label{fig:methodology-keyspace}}
 \end{figure}
 
@@ -126,6 +128,7 @@ second sliding window (\(y2\) axis). Despite having different growth rates
 \end{figure}
 
 \subsubsection{\underline{Initial conditions influence key activity}}
+\label{sec:delta}
 Figure~\ref{fig:motivation-regimes} shows how ParSplice tasks read key-value
 pairs from the worker's cache for two different initial conditions of
 \(\Delta\), which is the rate that new atoms enter the simulation.  The line is
@@ -138,7 +141,7 @@ picoseconds while the \(\Delta_2\) growth rate adds atoms every 1 million
 picoseconds. So \(\Delta_2\) has a smaller growth rate resulting in hotter
 keys and a smaller keyspace.  Values smaller than \(\Delta_2\)'s growth rate or
 a temperature of 400 degrees result in very little database activity because
-state transitions take very long. Similarly, growth rate values larger than \(\Delta_1\)'s
+state transitions take very long. Similarly, growth rate values larger than \(\Delta_1\)
 lead to far out-of-equilibrium growth, while temperatures in excess of 800 degrees
 result in the melting of the nanoparticle, which is not relevant in this application.
 

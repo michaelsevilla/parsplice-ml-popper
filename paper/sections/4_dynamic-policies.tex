@@ -27,27 +27,11 @@ hierarchy.
 
 % technical details
 We implement a basic LRU cache using a ``when" policy of:
-
-\begin{figure}[h]
-\footnotesize
-\begin{minted}{lua}
-server[whoami]['cachesize']>n
-\end{minted}
-\end{figure}
-
-and a ``how much" policy of:
-
-\begin{figure}[h]
-\footnotesize
-\begin{minted}{lua}
-servers[whoami]['cachesize']-n
-\end{minted}
-\end{figure}
-
-The results for different cache sizes for a growth rate of \(\Delta_1\) over a
-2.5 hour run across 256 workers is shown in
-Figure~\ref{fig:methodology-tradeoff}.  ``Baseline" is the performance of
-unmodified ParSplice  measured in trajectory duration (\(y1\) axis) and
+\texttt{server[whoami]['cachesize']>n} and a ``how much" policy of
+\texttt{servers[whoami]['cachesize']-n}.  The results for different cache sizes
+for a growth rate of \(\Delta_1\) over a 2.5 hour run across 256 workers is
+shown in Figure~\ref{fig:methodology-tradeoff}.  ``Baseline" is the performance
+of unmodified ParSplice  measured in trajectory duration (\(y1\) axis) and
 utilization is measured with memory footprint of just the cache (\(y2\) axis).
 The middle graph labeled ``Fixed Cache Size" shares the \(y\) axes and shows
 the trade-off of using a basic LRU-style cache of different sizes, where the
@@ -175,12 +159,10 @@ and the results are in Figure~\ref{fig:dscache-vs-none}.
     \begin{subfigure}[t]{0.48\textwidth}
         \centering
         \includegraphics[width=1\textwidth]{figures/dscache-vs-none.png}\\
-
 	\caption{The performance/utilization for the dynamically sized cache (DSCache)
 policy. With negligible performance degradation, DSCache adjusts to different initial configurations
-(\(\Delta\)'s) and saves 3\(\times\) as much memory in the best case.
+(\(\Delta\)s) and saves 3\(\times\) as much memory in the best case.
 \label{fig:dscache-vs-none}}
-
     \end{subfigure}%
     \caption{Different cache management policies tested over the Mantle policy engine.}
 \end{figure*}

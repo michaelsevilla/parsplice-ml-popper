@@ -34,15 +34,16 @@ create these policies.
 
 % ml and autotuning
 Auto-tuning is a well-known technique used in
-HPC~\cite{behzad:sc2013-autotuning, behzad:techreport2014-io-autotuning}, big
-data systems systems~\cite{herodotou_starfish_2011}, and
+HPC~\cite{behzad:sc2013-autotuning}, big data systems
+systems~\cite{herodotou_starfish_2011}, and
 databases~\cite{schnaitter_index_2009}.  Like our work, these systems focus on
 the physical design of the storage ({\it e.g.} cache size) but since we focused
 on a relatively small set of parameters (cache size, migration thresholds), we
 did not need anything as sophisticated as the genetic algorithm used
-in~\cite{behzad:sc2013-autotuning}.  We cannot drop these techniques into
-ParSplice because the magnitude and speed of the workload hotspots/flash crowds
-makes existing approaches less applicable. 
+in~\cite{behzad:sc2013-autotuning}.  
+%We cannot drop these techniques into
+%ParSplice because the magnitude and speed of the workload hotspots/flash crowds
+%makes existing approaches less applicable. 
 
 \section{Conclusion}
 
