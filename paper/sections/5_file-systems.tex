@@ -101,17 +101,21 @@ that architects grapple with are transcendent across domains and the solutions
 they design can be re-used in different code bases.
 
 \subsection{Using Cache Management Policies for Load Balancing}
-
+\label{sec:using-cache-management-policies-for-load-balancing}
 \begin{figure}[t]
 \noindent\includegraphics[width=0.5\textwidth]{figures/trace-atime.png}\\
 \caption{File system metadata reads for a Lustre trace collected at LANL. The
-vertical lines are the results of running the same pattern detection algorithm used for cache
-management in Section~\S\ref{sec:dom-specific} over this Lustre trace. A file system that
-load balances metadata across a cluster of servers could use the same pattern
-detection to make migration decisions, such as avoiding migration when the
-workload is accessing the same subset of keys or keeping groups of accesses
-local to a server.  \label{fig:trace-atime}}
+vertical lines are the results of running the pattern detection algorithm
+used for cache management in Section~\S\ref{sec:dom-specific}. File system
+cases are in
+Section~\S\ref{sec:using-cache-management-policies-for-load-balancing}.
+\label{fig:trace-atime}}
 \end{figure}
+%A file system that
+%load balances metadata across a cluster of servers could use the same pattern
+%detection to make migration decisions, such as avoiding migration when the
+%workload is accessing the same subset of keys or keeping groups of accesses
+%local to a server.
 
 %- how many inodes to keep in mds/client caches
 %- affects LB; increases capacity of single MDS (reduces req/mem pressure)
@@ -133,9 +137,9 @@ Figure~\ref{fig:keyspace-zoomed}.
 
 Although other access pattern detection algorithms are possible, we use the one
 designed for cache management in Section~\S\ref{sec:regime-detection} with
-slight modifications based on our knowledge of file systems\footnote{We
+slight modifications based on our knowledge of file systems. We
 filtered out requests for key IDs less than 2000, as these are most likely path
-traversal requests to higher parts of the namespace.}. The vertical lines in
+traversal requests to higher parts of the namespace. The vertical lines in
 Figure~\ref{fig:trace-atime} are the groups of accesses identified by the
 algorithm; it successfully detects the largest group of key accesses that
 starts at time 1000 seconds and ends at time 2200 seconds. File systems that
@@ -189,12 +193,9 @@ domains and could work ``out-of-the-box".
 Storage systems have many other data management techniques that would benefit
 from the caching policies developed in Sections~\S\ref{sec:arch-specific}
 and~\S\ref{sec:dom-specific}. For example, Ceph administrators can use the
-policies in ParSplice to automatically size and manage cache
-tiers\footnote{http://docs.ceph.com/docs/master/rados/operations/cache-tiering/},
-caching on object storage devices, or in the distributed block
-devices\footnote{http://docs.ceph.com/docs/master/rbd/rbd-config-ref/}.
-Integration with Mantle would be straightforward as it is merged into Ceph's
-mainline\footnote{http://docs.ceph.com/docs/master/cephfs/mantle/} and the
+policies in ParSplice to automatically size and manage cache tiers, caching on
+object storage devices, or in the distributed block device.  Integration with
+Mantle would be straightforward as it is merged into Ceph's mainline and the
 three caching subsystems mentioned above already maintain key access traces. 
 
 More generally, the similarities between load balancing and cache management
@@ -218,7 +219,7 @@ many" policies.
   \item Batching: how many operations to group together, when to send large
 batches of updates. We could use Mantle to implement pathname leases from
 IndexFS~\cite{ren:sc2014-indexfs} or the capabilities from
-CephFS\footnote{http://docs.ceph.com/docs/master/cephfs/capabilities/}.
+CephFS.
 
   \item Prefetching: how much to prefetch, how to select data.  We could use
 Mantle to implement forward/backward/stride detection algorithms for

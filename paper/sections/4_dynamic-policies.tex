@@ -26,9 +26,12 @@ specific knowledge, {\it i.e.} the hardware and software of the storage
 hierarchy.
 
 % technical details
-We implement a basic LRU cache using a ``when" policy of:
-\texttt{server[whoami]['cachesize']>n} and a ``how much" policy of
-\texttt{servers[whoami]['cachesize']-n}.  The results for different cache sizes
+We implement an LRU cache using a ``when" policy of:\\
+\noindent\texttt{server[whoami]['cachesize']>n}\\
+and a ``how much" policy of:\\
+\noindent\texttt{servers[whoami]['cachesize']-n}.
+
+The results for different cache sizes
 for a growth rate of \(\Delta_1\) over a 2.5 hour run across 256 workers is
 shown in Figure~\ref{fig:methodology-tradeoff}.  ``Baseline" is the performance
 of unmodified ParSplice  measured in trajectory duration (\(y1\) axis) and
@@ -52,16 +55,39 @@ the cache degrades performance and predictability.
 %\end{figure}
 
 
-\begin{figure}[t]
-\noindent\includegraphics[width=0.5\textwidth]{figures/methodology-tradeoff.png}\\
-\caption{Policy performance/utilization shows the trade-offs of different sized
-caches (\(x\) axis).  ``None" is ParSplice unmodified, ``Fixed Sized Cache"
-evicts keys using LRU, and ``Multi-Policy Cache" switches to fixed sized cache
-after absorbing the workload's initial burstiness. This parameter sweep
-identifies the ``Multi-Policy Cache" of 1K keys as the best solution but this
-only works for this system setup and initial configurations.
- \label{fig:methodology-tradeoff}}
-\end{figure}
+\begin{figure*}[t]
+  \centering
+  \begin{subfigure}[t]{0.32\textwidth}
+    \centering
+    \includegraphics[width=0.97\textwidth]{figures/methodology-tradeoff.png}\\
+    \caption{Policy with system knowledge (\S\ref{sec:arch-specific}).
+    \label{fig:methodology-tradeoff}}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.32\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{figures/keyspace-zoomed.png}\\
+    \caption{Key accesses (application knowledge).
+    \label{fig:keyspace-zoomed}}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.32\textwidth}
+    \centering
+    \includegraphics[width=0.97\textwidth]{figures/dscache-vs-none.png}\\
+    \caption{Policy with application knowledge (\S\ref{sec:dom-specific}).
+    \label{fig:dscache-vs-none}}
+  \end{subfigure}
+  \caption{Cache management policies tested over the Mantle policy engine.
+    (a) shows performance/utilization trade-offs of different cache
+    sizes (\(x\) axis).  ``None" is unmodified, ``Fixed Sized Cache" evicts keys
+    using LRU, and ``Multi-Policy Cache" switches to a fixed sized cache after
+    absorbing the workload's initial burstiness.  ``Multi-Policy Cache" with 1K
+    keys is the best policy but only works for our hardware/configurations.
+    (b) shows key accesses for a 4 hour run. Detecting these groups of accesses
+    leads to a more accurate cache management strategy.
+    (c) shows performance/utilization for the dynamically sized cache
+    (DSCache) policy. DSCache adjusts to different initial configurations
+    (\(\Delta\)'s) and saves 3\(\times\) as much memory in the best case.
+  }
+\end{figure*}
 
 \begin{figure}[t]
         \centering
@@ -143,31 +169,6 @@ parameters, number of worker tasks, and job lengths).
 
 \section{Cache Management Using Application-Specific Knowledge}
 \label{sec:dom-specific}
-
-\begin{figure*}[t!]
-    \begin{subfigure}[t]{0.48\textwidth}
-        \centering
-	\includegraphics[width=1\textwidth]{figures/keyspace-zoomed.png}\\
-
-\caption{Key activity for a 4 hour run shows groups of accesses to the same
-subset of keys. Detecting these access patterns leads to a more accurate cache
-management strategy, which is discussed in Section~\S\ref{sec:regime-detection}
-and the results are in Figure~\ref{fig:dscache-vs-none}.
-\label{fig:keyspace-zoomed}}
-    \end{subfigure}%
-    ~ 
-    \begin{subfigure}[t]{0.48\textwidth}
-        \centering
-        \includegraphics[width=1\textwidth]{figures/dscache-vs-none.png}\\
-
-	\caption{The performance/utilization for the dynamically sized cache (DSCache)
-policy. With negligible performance degradation, DSCache adjusts to different initial configurations
-(\(\Delta\)'s) and saves 3\(\times\) as much memory in the best case.
-\label{fig:dscache-vs-none}}
-
-    \end{subfigure}%
-    \caption{Different cache management policies tested over the Mantle policy engine.}
-\end{figure*}
 
 \begin{figure}[tb]
 \footnotesize
@@ -339,10 +340,10 @@ length), the dynamically sized cache policy uses between 32\%-66\% less memory
 than the default ParSplice configuration (no cache management) for the 3
 initial conditions we test. The memory usage over time is shown by the ``Dynamic Policy"
 curves in Figure~\ref{fig:memory-vs-time}, where the behavior resembles the key
-access patterns in Figure~\ref{fig:keyspace-zoomed}\footnote{The memory usage
+access patterns in Figure~\ref{fig:keyspace-zoomed}. The memory usage
 is not {\it exactly} the same because these are two different runs;
 Figure~\ref{fig:keyspace-zoomed} has key activity tracing turned on, which
-reduces performance.}.  We also show a \(\Delta_2\) growth rate to demonstrate
+reduces performance.  We also show a \(\Delta_2\) growth rate to demonstrate
 the dynamic policy's ability to adjust to a different set of initial
 conditions.
 
