@@ -108,7 +108,7 @@ Figure~\ref{fig:parsplice}.
     Section~\S\ref{sec:delta}).
     (b) shows that key accesses start with many reads to a small set of
     keys and progresses to less reads to a larger set of keys.  The line shows the
-    rate that EOM minima values are retrieved from the key-value store (\(y1\));
+    rate that minima values are retrieved from the key-value store (\(y1\));
     points along the bottom show the unique keys accessed in a 1
     second window (\(y2\)). Despite having different
     \(\Delta\)s, the structure of key accesses are similar.
@@ -156,7 +156,7 @@ picoseconds while the \(\Delta_2\) growth rate adds atoms every 1 million
 picoseconds. So \(\Delta_2\) has a smaller growth rate resulting in hotter
 keys and a smaller keyspace.  Values smaller than \(\Delta_2\)'s growth rate or
 a temperature of 400 degrees result in very little database activity because
-state transitions take very long. Similarly, growth rate values larger than \(\Delta_1\)'s
+state transitions take very long. Similarly, growth rate values larger than \(\Delta_1\)
 lead to far out-of-equilibrium growth, while temperatures in excess of 800 degrees
 result in the melting of the nanoparticle, which is not relevant in this application.
 
