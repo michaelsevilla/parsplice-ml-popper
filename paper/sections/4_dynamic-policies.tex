@@ -245,14 +245,14 @@ of inputs and system setups.
 
 Figure~\ref{fig:keyspace-zoomed} shows which keys (\(y\) axis) are accessed by
 tasks over time (\(x\) axis). The groups of accesses to a subset of keys occurs
-because molecules are stuck in deep trajectories. Recall that the cache stores
-the molecules' EOM minima, which is the smallest effective energy that a
-molecule observes during its trajectory. So molecules stuck in deep
-trajectories explore the same minima until they can escape to a new set of
-states. This exploration of the same set of states is called a superbasin.  In
-Figure~\ref{fig:keyspace-zoomed}, superbasins are never re-visited because the
-simulation only adds molecules; we can never reach a state with less molecules.
-This is why keys are never re-accessed.  
+because the system is stuck in so-called superbasins, {\it i.e.} coarse regions of space from
+which it is difficult to escape, but within which it is easy to move. Systems
+stuck in superbasins will explore the same set of minima for a
+long time, leading to the same keys being accessed repeatedly. In
+Figure~\ref{fig:keyspace-zoomed}, superbasins are typically not re-visited because the
+simulation only adds atoms; we can never revisit a superbasin that contains less atoms
+than the simulation currently contains.
+This is why keys are never re-accessed after a given amount of time.
 
 Detecting these superbasins can lead to more effective cache management
 strategies because the height of the groups of key accesses is ``how much" of

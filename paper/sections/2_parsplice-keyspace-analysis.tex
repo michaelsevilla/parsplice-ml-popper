@@ -14,7 +14,7 @@ segment exchange.
 
 ParSplice~\cite{perez:jctc20150parsplice} is an accelerated molecular dynamics
 (MD) simulation package developed at LANL. It is part of the Exascale Computing
-Project\footnote{http://www.exascale.org/bdec/} and is important to LANL's
+Project\footnote{https://www.exascaleproject.org/} and is important to LANL's
 Materials for the Future initiative. 
 
 \subsection{Background}
@@ -40,8 +40,8 @@ coordinates from the data store each time they begin generating segments. Since
 worker tasks do not maintain their own history, they can end up reading the
 same coordinates repeatedly. To mitigate the consequences of these repeated
 reads, ParSplice provisions a hierarchy of caches that sit in front of a single
-persistent database.  Values are written to each tier and reads traverse up the
-hierarchy until they find the data.  
+persistent database.  Values corresponding to new keys are written to each tier
+and reads traverse up the hierarchy until they find the data.
 
 We use ParSplice to simulate the evolution of metallic nanoparticles that grow
 from the vapor phase.  This simulation stresses the storage hierarchy more than
@@ -56,9 +56,8 @@ that can be visited.  However, as the particle grows, the simulation slows down
 because the calculations become more expensive, limiting the rate at which new
 states are visited.  On the other hand, the temperature controls how easily a
 trajectory can jump from state to state; higher temperatures lead to more
-frequent transitions but temperatures that are too high result in meaningless
-simulations because trajectories have so much energy that they are equally
-likely to visit any random state. 
+frequent transitions but temperatures that are too high lead to the melting of the
+nanoparticle and hence to a complete change in the physics of the system.
 
 %IT HAS 8K keys!  How did we take these measurements
 \subsection{Experimental Setup}
@@ -153,16 +152,16 @@ number of unique keys accessed (\(y2\) axis).  The access patterns for
 different growth rates have temporal locality, as the reads per second for
 \(\Delta_2\) look like the reads per second for \(\Delta_1\) stretched out
 along the time axis.  The \(\Delta_1\) growth rate adds atoms every 100K
-microseconds while the \(\Delta_2\) growth rate adds atoms every 1 million
-microseconds. So \(\Delta_2\) has a smaller growth rate resulting in hotter
+picoseconds while the \(\Delta_2\) growth rate adds atoms every 1 million
+picoseconds. So \(\Delta_2\) has a smaller growth rate resulting in hotter
 keys and a smaller keyspace.  Values smaller than \(\Delta_2\)'s growth rate or
 a temperature of 400 degrees result in very little database activity because
-state transitions take too long. Similarly, values larger than \(\Delta_1\)'s
-growth rate or a temperature of 4000 degrees result in an equally meaningless
-simulation as transitions are unrealistic.  
+state transitions take very long. Similarly, growth rate values larger than \(\Delta_1\)'s
+lead to far out-of-equilibrium growth, while temperatures in excess of 800 degrees
+result in the melting of the nanoparticle, which is not relevant in this application.
 
 This figure demonstrates that small changes to \(\Delta\) can have a strong
-effect on the timing and frequency with which new EOM minima are discovered and
+effect on the timing and frequency with which new minima are discovered and
 referenced.  Trends also exist for temperature and number of workers but are
 omitted here for space.  This finding suggests that we need a flexible policy
 language and engine to explore these trade-offs.  

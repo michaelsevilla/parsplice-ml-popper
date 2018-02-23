@@ -15,12 +15,13 @@ policies using our data management language/policy engine and arrive at a
 customized policy that works well for our example application,
 ParSplice~\cite{perez:jctc20150parsplice}.
 
-The ParSplice molecular dynamics simulation is representative of an important
+ParSplice molecular dynamics simulations are representative of an important
 class of HPC applications with similar working set behaviors that extensively
 use software-based caches. It uses a hierarchy of caches and a single
-persistent key-value store to store both observed minima across a molecule's
-equation of motion (EOM) and the hundreds or thousands of partial trajectories
-calculated each second during a parallel job.  This workload is pervasive
+persistent key-value store to store the atomic coordinates corresponding
+to local energy minima (referred to simply as minima) encountered
+by a large number of independent dynamical trajectories.
+This workload is also pervasive
 across simulations that (1) rely on a mesh-based decomposition of a physical
 region and (2) result in millions or billions of mesh cells, where each cell
 contains materials, pressures, temperatures and other characteristics that are
@@ -41,8 +42,8 @@ baseline of a cache of unlimited size.
 \label{fig:cache-management}}
 \end{figure}
 
-The biggest challenge for ParSplice is properly sizing the caches in the
-storage hierarchy.  The memory usage for a single cache that stores molecule
+A challenge for ParSplice is properly sizing the caches in the
+storage hierarchy.  The memory usage for a single cache that stores atomic
 coordinates is shown in Figure~\ref{fig:cache-management}, where the thin solid
 lines marked with \(\times\)'s are the existing configurations in ParSplice.
 The default configuration uses an unlimited sized cache, shown by the ``No
