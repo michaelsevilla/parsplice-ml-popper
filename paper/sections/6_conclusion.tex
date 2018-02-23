@@ -21,13 +21,10 @@ different partitions by grabbing leases and caching ancestor metadata for path
 traversal. ShardFS~\cite{xiao:socc15-shardfs} takes the replication approach to
 the extreme by copying all directory state to all nodes.
 CephFS~\cite{weil:sc2004-dyn-metadata, weil:osdi2006-ceph} employs both
-techniques to a lesser extent; directories can be replicated or sharded but the
-caching and replication policies are controlled with tunable parameters.  These
-systems still need to be tuned by hand with {\it ad-hoc} policies designed for
-specific applications.  Setting policies for migrations is arguably more
-difficult than adding the migration mechanisms themselves.  For example,
-IndexFS/CephFS use the GIGA+~\cite{patil:fast2011-giga} technique for
-partitioning directories at a \emph{predefined} threshold. Mantle makes headway
+techniques to a lesser extent.  These systems still need to be tuned by hand
+with {\it ad-hoc} policies designed for specific applications.  For example,
+IndexFS and CephFS partition directories at \emph{predefined} thresholds,
+which are difficult to define at the beginning of the job. Mantle makes headway
 in this space by providing a framework for exploring these policies, but does
 not attempt anything more sophisticated ({\it e.g.}, machine learning) to
 create these policies. 
@@ -53,8 +50,7 @@ decision making and finding the best policies is a difficult, multi-dimensional
 problem.  We iterate to a custom solution for our target application that uses
 workload access patterns to size its caches. Without tuning or parameter
 sweeps, our solution saves memory without sacrificing performance for a variety
-of initial conditions, including the scale, duration, configuration, and
-hardware of the simulation. More importantly, rather than attempting to
+of initial conditions. More importantly, rather than attempting to
 construct a single, complex policy that works for a variety of scenarios, we
 instead use the Mantle framework to enable software-defined storage systems to
 flexibly change policies as the workload changes.  We also observe that many of
@@ -63,10 +59,10 @@ file systems that they both can be expressed with similar semantics.
 
 This lays the foundation for future work, where we will focus on formalizing a
 collection of general data management policies that can be used across
-applications and storage systems.  The value of such a collection eases the
+applications and storage systems.  This eases the
 burden of policy development and paves the way for automated solutions such as
 (1) adaptable policies that switch to new strategies when the current strategy
-behaves poorly ({\it e.g.}, thrashing, making no progress, etc.), and (2)
+behaves poorly ({\it e.g.}, thrashing), and (2)
 policy generation, where new policies are constructed by examining the
-collection of existing policies.  Ultimately, we hope that this automation
+collection of existing policies.  We hope that this automation
 enables control of policies by machines instead of administrators. 

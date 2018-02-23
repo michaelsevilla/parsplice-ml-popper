@@ -203,27 +203,23 @@ show how the ``when"/``where"/``how much" abstractions, data management
 language, and policy engine may be widely applicable to other data management
 techniques, such as:
 
-\begin{itemize}
-
-  \item QoS: when to move clients, where to move clients, how much of the
+\textbf{QoS}: when to move clients, where to move clients, how much of the
 reservation to move. We could use Mantle to implement something like the
 reservation algorithms based on utilization and period in
 Fahrrad~\cite{povzner_horizon_2010} to achieve better guarantees without
 sacrificing performance.
 
-  \item Scheduling: when to yield computation cycles to another process, how
+\textbf{Scheduling}: when to yield computation cycles to another process, how
 much of a resource to allocate. We could use Mantle to implement the
 fairness/priority models used in the Mesos~\cite{hindman_mesos_2011} ``how
 many" policies.
 
-  \item Batching: how many operations to group together, when to send large
+\textbf{Batching}: how many operations to group together, when to send large
 batches of updates. We could use Mantle to implement pathname leases from
 IndexFS~\cite{ren:sc2014-indexfs} or the capabilities from
 CephFS.
 
-  \item Prefetching: how much to prefetch, how to select data.  We could use
+\textbf{Prefetching}: how much to prefetch, how to select data.  We could use
 Mantle to implement forward/backward/stride detection algorithms for
 prefetching in RAID arrays or something more complicated, like the time series
 algorithms for adaptive I/O prefetching from~\cite{tran:sc01-arima}.
-
-\end{itemize}
