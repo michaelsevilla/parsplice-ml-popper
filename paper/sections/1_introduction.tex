@@ -4,8 +4,7 @@ Storage systems use software-based caches to improve performance but the
 policies that guide what data to evict and when to evict vary with the use
 case. For example, caching file system metadata on clients and servers reduces
 the number of remote procedure calls and improves the performance of
-create-heavy workloads common in HPC~\cite{ren:sc2014-indexfs,
-patil:fast2011-giga+, weil:sc2004-dyn-metadata}. But the policies for what data
+create-heavy workloads common in HPC~\cite{ren:sc2014-indexfs, weil:sc2004-dyn-metadata}. But the policies for what data
 to evict and when to evict are specific to the application's behavior and the
 hardware configuration so a new workload may prove to be a poor match for the
 selected caching
